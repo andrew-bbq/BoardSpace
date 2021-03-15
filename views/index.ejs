@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>BoardSpace: A Space for Boards</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1>BoardSpace</h1>
-    <p>
-      <form action="/" method="POST">
-        <input name="code" />
-        <input name="submit" type="submit" value="Join" />
-      </form>
-    </p>
-  </body>
+
+<head>
+  <title>BoardSpace: A Space for Boards</title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+  <h1>BoardSpace</h1>
+  <p>
+  <form action="/" method="POST">
+    <div id="OTPInput" >
+      <input class = "digit" id = "opt-field1" maxlength = "1" value = '' autocomplete="off">
+      <input class = "digit" id = "opt-field2" maxlength = "1" value = '' autocomplete="off">
+      <input class = "digit" id = "opt-field3" maxlength = "1" value = '' autocomplete="off">
+      <input class = "digit" id = "opt-field4" maxlength = "1" value = '' autocomplete="off">
+    </div>
+    <input hidden name = "code" id="joincode" value = "">
+    <input id = "joinBtn" name="submit" type="submit" value="Join" />
+    <div>
+      <input name="submit" type="submit" value="Create" />
+    </div>
+    
+    
+  </form>
+  </p>
+</body>
+<script src = "/index.js">
+</script>
 </html>

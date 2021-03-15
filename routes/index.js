@@ -26,25 +26,31 @@ router.get('/', function(req, res, next) {
 
 router.post('/', function(req, res, next) {
   let boardcode = req.body.code;
-  if(boardcode in boards) {
-    console.log("board found");
-    if (req.session.codes && req.session.codes[boardcode]) {
-      // if board is already in session & you're an editor
-      return res.redirect("/board?code="+boardcode);
-    } else if (boards[boardcode].length == 0) {
-      // add boardcode to session with editability set to true if joining board without password
-      if (req.session.codes) {
-        req.session.codes[boardcode] = true;
+  let submit = req.body.submit;
+  if (submit == "Join") {
+    if(boardcode in boards) {
+      console.log("board found");
+      if (req.session.codes && req.session.codes[boardcode]) {
+        // if board is already in session & you're an editor
+        return res.redirect("/board?code="+boardcode);
+      } else if (boards[boardcode].length == 0) {
+        // add boardcode to session with editability set to true if joining board without password
+        if (req.session.codes) {
+          req.session.codes[boardcode] = true;
+        } else {
+          req.session.codes = {};
+          req.session.codes[boardcode] = true;
+        }
+        return res.redirect("/board?code="+boardcode);
       } else {
-        req.session.codes = {};
-        req.session.codes[boardcode] = true;
+        return res.redirect("/joinboard?code="+boardcode);
       }
-      return res.redirect("/board?code="+boardcode);
-    } else {
-      return res.redirect("/joinboard?code="+boardcode);
     }
+    return res.redirect("/?error=code");
   }
-  return res.redirect("/?error=code");
+  else if (submit == "Create"){
+    return res.redirect("/createboard");
+  }
 });
 
 router.get('/createboard', function(req, res, next) {
