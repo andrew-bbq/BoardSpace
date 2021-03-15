@@ -5,8 +5,6 @@ const inputs = document.querySelectorAll('#OTPInput > *[id]');
 inputs[0].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
         inputs[0].value = '';
-    } else if (event.key === "ArrowRight") {
-        inputs[1].focus();
     }
 });
 inputs[0].addEventListener('input', function (event) {
@@ -18,13 +16,13 @@ inputs[0].addEventListener('input', function (event) {
 });
 inputs[1].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
-        inputs[1].value = '';
-    } else if (event.key === "ArrowRight") {
-        inputs[2].focus();
-    }
-    else if (event.key === "ArrowLeft") {
-        inputs[0].focus();
-    }
+        if(inputs[1].value == ''){
+            inputs[0].focus();
+        }
+        else {
+            inputs[1].value == '';
+        }
+    } 
 });
 inputs[1].addEventListener('input', function (event) {
     inputs[1].value = inputs[1].value.toUpperCase();
@@ -36,12 +34,12 @@ inputs[1].addEventListener('input', function (event) {
 
 inputs[2].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
-        inputs[2].value = '';
-    } else if (event.key === "ArrowRight") {
-        inputs[3].focus();
-    }
-    else if (event.key === "ArrowLeft") {
-        inputs[1].focus();
+        if(inputs[2].value == ''){
+            inputs[1].focus();
+        }
+        else {
+            inputs[2].value == '';
+        }
     }
 });
 inputs[2].addEventListener('input', function (event) {
@@ -54,10 +52,12 @@ inputs[2].addEventListener('input', function (event) {
 
 inputs[3].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
-        inputs[3].value = '';
-    }
-    else if (event.key === "ArrowLeft") {
-        inputs[2].focus();
+        if(inputs[3].value == ''){
+            inputs[2].focus();
+        }
+        else {
+            inputs[3].value == '';
+        }
     }
 });
 inputs[3].addEventListener('input', function (event) {
