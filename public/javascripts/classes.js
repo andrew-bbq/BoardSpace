@@ -37,7 +37,9 @@ class Pen extends DrawingObject{
     }
     getSvg(){
         let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("width", size);
+        path.setAttribute("stroke-width", this.size);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", this.color);
         let pathString = "";
         if (this.shapeData.length > 0) {
             pathString = "M "+this.shapeData[0].x+" "+this.shapeData[0].y;

@@ -10,3 +10,7 @@ a {
 .digit {
   width : 20px;
 }
+
+#drawing-svg {
+  border: solid 1px black;
+}

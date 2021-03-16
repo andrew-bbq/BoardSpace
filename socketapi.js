@@ -14,7 +14,7 @@ io.on("connection", (socket) => {
         socket.join(code);
         // create board if non-existent already
         if (!(code in boards)) {
-            boards[code] = "empty board object";
+            boards[code] = {};
             nextIds[code] = 0;
         }
         // send board and next id back to user

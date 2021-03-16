@@ -14,18 +14,91 @@
     <p>
       can edit: <%= canEdit %>
     </p>
+    <div id="drawing-goes-here"></div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    const BOARD_WIDTH = 500;
+    const BOARD_HEIGHT = 500;
+    const POLL_RATE = 10;
+    let nextId = 0;
+    let poll = POLL_RATE;
+    let mouseX = 0;
+    let mouseY = 0;
+    let mouseDown = false;
+    let lastTimestamp;
+    let board = {};
+    let penSize = 3;
+    let color = 'black';
+
+
     const socket = io();
     const code = document.getElementById("code").value;
+
     socket.emit('join', {code: code});
     socket.on('joindata', function(data) {
-      console.log(data);
+      nextId = data.nextId;
+      board = data.board;
     });
     socket.emit('change', {code: code});
     socket.on('change', function(data) {
       console.log(data);
     });
+
+    // not a canvas lol
+    let canvas = document.getElementById("drawing-svg");
+
+    function compileBoard(){
+      let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.id = "drawing-svg";
+      svg.setAttribute("width", BOARD_WIDTH);
+      svg.setAttribute("height", BOARD_HEIGHT);
+      for (let id in board) {
+        let element = board[id].getSvg();
+        svg.appendChild(element);
+      }
+      document.getElementById("drawing-goes-here").innerHTML = '';
+      document.getElementById("drawing-goes-here").appendChild(svg);
+      canvas = document.getElementById("drawing-svg");
+
+      // get mouse coordinates on svg
+      canvas.onmousemove = (event) => {
+        let box = (event.target).getBoundingClientRect();
+        mouseX = event.clientX - box.x;
+        mouseY = event.clientY - box.y;
+      };
+
+      canvas.onmousedown = (event) => {
+        mouseDown = true;
+        // if pen is selected tool
+        board[nextId] = new Pen(nextId, [], {x:0, y:0}, {x:0, y:0}, penSize, color)
+      }
+
+      canvas.onmouseup = (event) => {
+        mouseDown = false;
+      }
+    }
+
+    function plotPenPoint() {
+      board[nextId].shapeData.push({x:mouseX, y:mouseY});
+      compileBoard();
+    }
+
+    // we're not actually animating lol
+    function animate(timestamp) {
+      deltaTime = lastTimestamp ? timestamp - lastTimestamp : 0;
+      lastTimestamp = timestamp;
+      poll-=deltaTime;
+      if (poll < 0 && mouseDown) {
+        // if tool == pen /freeform drawing
+        plotPenPoint();
+        poll = POLL_RATE;
+      }
+
+      window.requestAnimationFrame(animate);
+    }
+    animate();
+
+    compileBoard();
   </script>
 </html>
