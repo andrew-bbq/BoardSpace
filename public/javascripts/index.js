@@ -19,6 +19,7 @@ for(let j =0; j < 4; j++){
                 break;
             }
             inputs[i].value = code.charAt(i);
+            updateCode();
             if(i<3){
                 inputs[i+1].focus();
             }  
