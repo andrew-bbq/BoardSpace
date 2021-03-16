@@ -11,21 +11,21 @@ let board = {};
 let penSize = 3;
 let color = 'black';
 let left;
-
+let newPoints = [];
 const socket = io();
 const code = document.getElementById("code").value;
 
 socket.emit('join', { code: code });
 socket.on('joindata', function (data) {
     nextId = data.nextId;
-    board = data.board;
+    sentboard = data.board;
     let newBoard = {};
-    for (key in board) {
-        if (board[key].type == "Pen") {
-            newBoard[key] = new Pen(key, board[key].shapeData, { x: 0, y: 0 }, { x: 0, y: 0 }, board[key].size, board[key].color);
-        }
+    for (key in sentboard) {
+        newBoard[key] = new Pen(key, { x: 0, y: 0 }, { x: 0, y: 0 }, sentboard[key].size, sentboard[key].color); 
+        newBoard[key].setPath(sentboard[key].path);
     }
     board = newBoard;
+    console.log(board);
     compileBoard();
 });
 socket.emit('change', { code: code });
@@ -35,7 +35,13 @@ socket.on('change', function (data) {
 socket.on('add', function (data) {
     if (nextId != data.id) {
         if (data.type == "Pen") {
-            board[data.id] = new Pen(data.id, data.shapeData, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            if(board[data.id]){
+                board[data.id].updatePathData(data.newPoints);
+            }
+            else {
+                board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            }
+            
         }
     }
     compileBoard();
@@ -77,19 +83,25 @@ if (canEdit == "true") {
     svg.onmousedown = (event) => {
         mouseDown = true;
         // if pen is selected tool
-        board[nextId] = new Pen(nextId, [], { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-        socket.emit('add', { code: code, id: nextId, shapeData: board[nextId].shapeData, size: board[nextId].size, color: board[nextId].color, type: "Pen" });
+        board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
+        socket.emit('add', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, type: "Pen", newPoints:[]});
     }
 
     svg.onmouseup = (event) => {
+        console.log(board[nextId].getPath());
+        console.log(nextId);
+        socket.emit("addPen", {code:code, id:nextId, path:board[nextId].getPath(), size:board[nextId].size, color: board[nextId].color} );
         socket.emit("requestNewId", { code: code });
+        
         mouseDown = false;
     }
 
     svg.onmouseleave = function () {
         left = true;
         if(mouseDown){
-            board[nextId].shapeData.push({ x: mouseX, y: mouseY, type: "line"});
+            board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line"}]);
+            newPoints.push({ x: mouseX, y: mouseY, type: "line"});
+            //socket.emit('add', { code: code, id: nextId, shapeData: board[nextId].shapeData, size: board[nextId].size, color: board[nextId].color, type: "Pen", newPoints:newPoints});
         }
         compileBoard();
     }
@@ -99,7 +111,9 @@ if (canEdit == "true") {
                 let box = svg.getBoundingClientRect();
                 mouseX = event.clientX - box.left;
                 mouseY = event.clientY - box.top;
-                board[nextId].shapeData.push({ x: mouseX, y: mouseY, type: "jump"});
+                board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "jump"}]);
+                newPoints.push({ x: mouseX, y: mouseY, type: "jump"});
+                //socket.emit('add', { code: code, id: nextId, shapeData: board[nextId].shapeData, size: board[nextId].size, color: board[nextId].color, type: "Pen", newPoints:newPoints});
             }
             left = false;
         }
@@ -116,6 +130,7 @@ if (canEdit == "true") {
 
 function compileBoard() {
     // clear board
+    
     while (svg.lastChild) {
         svg.removeChild(svg.lastChild);
     }
@@ -128,8 +143,11 @@ function compileBoard() {
 }
 
 function plotPenPoint() {
-    board[nextId].shapeData.push({ x: mouseX, y: mouseY, type: "line"});
-    socket.emit('add', { code: code, id: nextId, shapeData: board[nextId].shapeData, size: board[nextId].size, color: board[nextId].color, type: "Pen" });
+    //board[nextId].shapeData.push({ x: mouseX, y: mouseY, type: "line"});
+    board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line"}]);
+    newPoints.push({ x: mouseX, y: mouseY, type: "line"});
+    socket.emit('add', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, type: "Pen", newPoints:newPoints});
+    newPoints = [];
     compileBoard();
 }
 

@@ -23,8 +23,13 @@ io.on("connection", (socket) => {
     });
 
     socket.on("add", function(data) {
-        boards[data.code][data.id] = data;
+        //boards[data.code][data.id] = data;
         socket.to(data.code).emit('add', data)
+    });
+
+    socket.on("addPen", function(data) {
+        // The path string
+        boards[data.code][data.id] = {path: data.path, size: data.size, color:data.color};
     });
 
     socket.on("updateTransform", function(data) {
