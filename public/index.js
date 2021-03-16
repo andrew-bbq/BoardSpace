@@ -2,6 +2,29 @@
 
 /*  This is for switching back and forth the input box for user experience */
 const inputs = document.querySelectorAll('#OTPInput > *[id]');
+for(let j =0; j < 4; j++){
+    inputs[j].addEventListener('paste', function (e) {
+        var clipboardData, pastedData;
+
+        // Stop data actually being pasted into div
+        e.stopPropagation();
+        e.preventDefault();
+
+        // Get pasted data via clipboard API
+        clipboardData = e.clipboardData || window.clipboardData;
+        code = clipboardData.getData('text');
+        
+        for (let i =0; i < code.length; i++){
+            if(i>3){
+                break;
+            }
+            inputs[i].value = code.charAt(i);
+            if(i<3){
+                inputs[i+1].focus();
+            }  
+        }
+    });
+}
 inputs[0].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
         inputs[0].value = '';
