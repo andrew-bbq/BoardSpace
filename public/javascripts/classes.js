@@ -1,3 +1,7 @@
+const DEF_ROTATE = "0 0 0";
+const DEF_POS = "0 0 0";
+const DEF_SCALE = "0 0";
+
 class DrawingObject{
     constructor(id, shapeData, position, rotation, scale, lowerLeft, upperRight){
         this.id = id;
@@ -27,12 +31,22 @@ class DrawingObject{
 
 class Pen extends DrawingObject{
     constructor(id, shapeData, lowerLeft, upperRight, size, color){
-        super(id, shapeData, lowerLeft, upperRight);
+        super(id, shapeData, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight);
         this.size = size;
         this.color = color;
     }
     getSvg(){
-
+        let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("width", size);
+        let pathString = "";
+        if (this.shapeData.length > 0) {
+            pathString = "M "+this.shapeData[0].x+" "+this.shapeData[0].y;
+        }
+        for (let i = 1; i < this.shapeData.length; i++) {
+            pathString += " L "+this.shapeData[i].x+" "+this.shapeData[i].y;
+        }
+        path.setAttribute("d", pathString);
+        return path;
     }
     updatePathData(){
         
