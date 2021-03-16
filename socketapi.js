@@ -40,6 +40,12 @@ io.on("connection", (socket) => {
         let code = data.code;
         socket.to(code).emit('change', data);
     });
+
+    socket.on("clearboard", function(data){
+        let code = data.code;
+        socket.to(code).emit('clearboard');
+        boards[code] = {};
+    })
 });
 
 module.exports = socketapi;
