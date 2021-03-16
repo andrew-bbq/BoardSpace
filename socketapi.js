@@ -17,8 +17,23 @@ io.on("connection", (socket) => {
             boards[code] = {};
             nextIds[code] = 0;
         }
+        nextIds[code]++;
         // send board and next id back to user
         socket.emit("joindata", {nextId: nextIds[code], board: boards[code]})
+    });
+
+    socket.on("add", function(data) {
+        boards[data.code][data.id] = data;
+        socket.to(data.code).emit('add', data)
+    });
+
+    socket.on("updateTransform", function(data) {
+
+    });
+
+    socket.on("requestNewId", function(data) {
+        nextIds[data.code]++;
+        socket.emit("newId", {newId: nextIds[data.code]});
     });
 
     socket.on("change", function(data) {

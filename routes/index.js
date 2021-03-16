@@ -27,7 +27,6 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
   let boardcode = req.body.code;
   if (boardcode in boards) {
-    console.log("board found");
     if (req.session.codes && req.session.codes[boardcode]) {
       // if board is already in session & you're an editor
       return res.redirect("/board?code=" + boardcode);

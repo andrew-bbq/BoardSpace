@@ -41,10 +41,30 @@
   socket.on('joindata', function (data) {
     nextId = data.nextId;
     board = data.board;
+    let newBoard = {};
+    for (key in board) {
+      if (board[key].type == "Pen") {
+        newBoard[key] = new Pen(key, board[key].shapeData, { x: 0, y: 0 }, { x: 0, y: 0 }, board[key].size, board[key].color);
+      }
+    }
+    board = newBoard;
+    compileBoard();
   });
   socket.emit('change', { code: code });
   socket.on('change', function (data) {
     console.log(data);
+  });
+  socket.on('add', function(data) {
+    if (nextId != data.id) {
+      if (data.type == "Pen") {
+        board[data.id] = new Pen(data.id, data.shapeData, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+      }
+    }
+    compileBoard();
+  });
+
+  socket.on('newId', function(data) {
+    nextId = data.newId;
   });
 
   // get svg
@@ -59,10 +79,13 @@
   svg.onmousedown = (event) => {
     mouseDown = true;
     // if pen is selected tool
-    board[nextId] = new Pen(nextId, [], { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color)
+    board[nextId] = new Pen(nextId, [], { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
+    socket.emit('add', {code: code, id: nextId, shapeData: board[nextId].shapeData, size: board[nextId].size, color: board[nextId].color, type: "Pen"});
   }
 
   svg.onmouseup = (event) => {
+    console.log(nextId);
+    socket.emit("requestNewId", {code:code});
     mouseDown = false;
   }
 
@@ -81,6 +104,7 @@
 
   function plotPenPoint() {
     board[nextId].shapeData.push({ x: mouseX, y: mouseY });
+    socket.emit('add', {code: code, id: nextId, shapeData: board[nextId].shapeData, size: board[nextId].size, color: board[nextId].color, type: "Pen"});
     compileBoard();
   }
 
