@@ -5,6 +5,7 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
+    <input type="hidden" id="code" value="<%=boardcode%>" />
     <h1>ur board</h1>
     <p>
       code: <%= boardcode %>
@@ -13,4 +14,17 @@
       can edit: <%= canEdit %>
     </p>
   </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const code = document.getElementById("code").value;
+    socket.emit('join', {code: code});
+    socket.on('joindata', function(data) {
+      console.log(data);
+    });
+    socket.emit('change', {code: code});
+    socket.on('change', function(data) {
+      console.log(data);
+    });
+  </script>
 </html>
