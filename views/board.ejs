@@ -1,104 +1,105 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>BoardSpace: A Space for Boards</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-    <script src = "/javascripts/classes.js"></script>
-  </head>
-  <body>
-    <input type="hidden" id="code" value="<%=boardcode%>" />
-    <h1>ur board</h1>
-    <p>
-      code: <%= boardcode %>
-    </p>
-    <p>
-      can edit: <%= canEdit %>
-    </p>
-    <div id="drawing-goes-here"></div>
-  </body>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const BOARD_WIDTH = 500;
-    const BOARD_HEIGHT = 500;
-    const POLL_RATE = 10;
-    let nextId = 0;
-    let poll = POLL_RATE;
-    let mouseX = 0;
-    let mouseY = 0;
-    let mouseDown = false;
-    let lastTimestamp;
-    let board = {};
-    let penSize = 3;
-    let color = 'black';
+
+<head>
+  <title>BoardSpace: A Space for Boards</title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <script src="/javascripts/classes.js"></script>
+</head>
+
+<body>
+  <input type="hidden" id="code" value="<%=boardcode%>" />
+  <h1>ur board</h1>
+  <p>
+    code: <%= boardcode %>
+  </p>
+  <p>
+    can edit: <%= canEdit %>
+  </p>
+  <div id="drawing-goes-here"><svg width="500" height="500" id="drawing-svg"></svg></div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const BOARD_WIDTH = 500;
+  const BOARD_HEIGHT = 500;
+  const POLL_RATE = 10;
+  let nextId = 0;
+  let poll = POLL_RATE;
+  let mouseX = 0;
+  let mouseY = 0;
+  let mouseDown = false;
+  let lastTimestamp;
+  let board = {};
+  let penSize = 3;
+  let color = 'black';
 
 
-    const socket = io();
-    const code = document.getElementById("code").value;
+  const socket = io();
+  const code = document.getElementById("code").value;
 
-    socket.emit('join', {code: code});
-    socket.on('joindata', function(data) {
-      nextId = data.nextId;
-      board = data.board;
-    });
-    socket.emit('change', {code: code});
-    socket.on('change', function(data) {
-      console.log(data);
-    });
+  socket.emit('join', { code: code });
+  socket.on('joindata', function (data) {
+    nextId = data.nextId;
+    board = data.board;
+  });
+  socket.emit('change', { code: code });
+  socket.on('change', function (data) {
+    console.log(data);
+  });
 
-    // not a canvas lol
-    let canvas = document.getElementById("drawing-svg");
+  // get svg
+  let svg = document.getElementById("drawing-svg");
 
-    function compileBoard(){
-      let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.id = "drawing-svg";
-      svg.setAttribute("width", BOARD_WIDTH);
-      svg.setAttribute("height", BOARD_HEIGHT);
-      for (let id in board) {
-        let element = board[id].getSvg();
-        svg.appendChild(element);
-      }
-      document.getElementById("drawing-goes-here").innerHTML = '';
-      document.getElementById("drawing-goes-here").appendChild(svg);
-      canvas = document.getElementById("drawing-svg");
+  svg.onmousemove = (event) => {
+    let box = svg.getBoundingClientRect();
+    mouseX = event.clientX - box.left;
+    mouseY = event.clientY - box.top;
+  };
 
-      // get mouse coordinates on svg
-      canvas.onmousemove = (event) => {
-        let box = (event.target).getBoundingClientRect();
-        mouseX = event.clientX - box.x;
-        mouseY = event.clientY - box.y;
-      };
+  svg.onmousedown = (event) => {
+    mouseDown = true;
+    // if pen is selected tool
+    board[nextId] = new Pen(nextId, [], { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color)
+  }
 
-      canvas.onmousedown = (event) => {
-        mouseDown = true;
-        // if pen is selected tool
-        board[nextId] = new Pen(nextId, [], {x:0, y:0}, {x:0, y:0}, penSize, color)
-      }
+  svg.onmouseup = (event) => {
+    mouseDown = false;
+  }
 
-      canvas.onmouseup = (event) => {
-        mouseDown = false;
-      }
+  function compileBoard() {
+    // clear board
+    while (svg.lastChild) {
+      svg.removeChild(svg.lastChild);
     }
-
-    function plotPenPoint() {
-      board[nextId].shapeData.push({x:mouseX, y:mouseY});
-      compileBoard();
+    // add elements
+    for (let id in board) {
+      let element = board[id].getSvg();
+      svg.appendChild(element);
     }
+    canvas = document.getElementById("drawing-svg");
+  }
 
-    // we're not actually animating lol
-    function animate(timestamp) {
-      deltaTime = lastTimestamp ? timestamp - lastTimestamp : 0;
-      lastTimestamp = timestamp;
-      poll-=deltaTime;
-      if (poll < 0 && mouseDown) {
-        // if tool == pen /freeform drawing
-        plotPenPoint();
-        poll = POLL_RATE;
-      }
-
-      window.requestAnimationFrame(animate);
-    }
-    animate();
-
+  function plotPenPoint() {
+    board[nextId].shapeData.push({ x: mouseX, y: mouseY });
     compileBoard();
-  </script>
+  }
+
+  // we're not actually animating lol
+  function animate(timestamp) {
+    deltaTime = lastTimestamp ? timestamp - lastTimestamp : 0;
+    lastTimestamp = timestamp;
+    poll -= deltaTime;
+    if (poll < 0 && mouseDown) {
+      // if tool == pen /freeform drawing
+      plotPenPoint();
+      poll = POLL_RATE;
+    }
+
+    window.requestAnimationFrame(animate);
+  }
+  animate();
+
+  compileBoard();
+</script>
+
 </html>
