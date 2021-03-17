@@ -10,7 +10,7 @@
 <body>
   <a href="/">Home</a>
   <input type="hidden" id="code" value="<%=boardcode%>" />
-  <h1>Board <%= boardcode %></h1>
+  <h1>Board <span id = "bcode"><%= boardcode %></span> <button id="Copy"> Copy </button></h1>
   <h2>
     <% if (canEdit) { %>
      Editor

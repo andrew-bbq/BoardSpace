@@ -52,7 +52,7 @@ socket.on('joinData', function (data) {
 //          color: the color of the pen object
 //          newPoints: the points being added to the Pen object's path
 //      }
-socket.on('drawPen', function (data) {
+socket.on('drawPen', function (data) {   
     // Make sure that the object being changed isn't being changed by this user rn
     if (nextId != data.id) {
         // If this board already has this Pen object, then update it accordingly
@@ -88,6 +88,14 @@ socket.on('newId', function (data) {
 let svg = document.getElementById("drawing-svg");
 // does the user have editing access
 let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
+
+// Copy code button for just for testing 
+document.getElementById('Copy').addEventListener('click', copy);
+async function copy() {
+  let text = document.querySelector("#bcode").innerHTML;
+  await navigator.clipboard.writeText(text);
+}
+
 // If the user has edit access, define the board editing listeners
 if (canEdit == "true") {
     let pensizer = document.getElementById("pensize");
@@ -101,6 +109,7 @@ if (canEdit == "true") {
     // Clear the board
     clearer.onclick = function () {
         clearBoard();
+        socket.emit("requestNewId", { code: code });
         socket.emit('clearBoard', { code: code });
     }
 
@@ -123,12 +132,14 @@ if (canEdit == "true") {
         socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
     }
 
-    svg.onmouseup = (event) => {
-        // if pen is selected tool
-        socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
-        // get a new id for nextId
-        socket.emit("requestNewId", { code: code });
-        mouseDown = false;
+    document.onmouseup = (event) => {
+        if (mouseDown) {
+            // if pen is selected tool
+            socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
+            // get a new id for nextId
+            socket.emit("requestNewId", { code: code });
+            mouseDown = false;
+        }
     }
 
     svg.onmouseleave = function () {
@@ -137,6 +148,9 @@ if (canEdit == "true") {
         if (mouseDown) {
             board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
             newPoints.push({ x: mouseX, y: mouseY, type: "line" });
+            socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
+            // points waiting to be broadcasted have been, so clear it
+            newPoints = [];
         }
         compileBoard();
     }
@@ -157,14 +171,15 @@ if (canEdit == "true") {
         }
     }
 
-    document.onmouseup = function () {
-        // If was drawing but left the board
-        if (mouseDown) {
-            //socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
-            socket.emit("requestNewId", { code: code });
-            mouseDown = false;
-        }
-    }
+    // document.onmouseup = function () {
+    //     // If was drawing but left the board
+    //     console.log(mouseDown);
+    //     if (mouseDown) {
+    //         socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
+    //         socket.emit("requestNewId", { code: code });
+    //         mouseDown = false;
+    //     }
+    // }
 }
 
 // Clear the board
