@@ -63,6 +63,9 @@ socket.on('drawPen', function (data) {
         else {
             board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].updatePathData(data.newPoints);
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+            }
         }
     }
     compileBoard();
