@@ -10,6 +10,7 @@ let undoStack = [];
 let redoStack = [];
 let mouseLeft; // has the mouse left the board
 let newPoints = []; // the points that have been drawn that need to be emitted to other clients (for pen)
+let requestProcessing = false;
 const socket = io();
 const code = document.getElementById("code").value;
 
@@ -131,6 +132,7 @@ socket.on('drawPen', function (data) {
             board[data.id].updatePathData(data.newPoints);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
             }
         }
     }
@@ -175,6 +177,7 @@ socket.on('erase', function (data) {
  *   }
  */
 socket.on('newId', function (data) {
+    requestProcessing = false;
     nextId = data.newId;
 });
 
@@ -204,6 +207,7 @@ if (canEdit == "true") {
     clearer.onclick = function () {
         clearBoard();
         socket.emit("requestNewId", { code: code });
+        requestProcessing = true;
         socket.emit('clearBoard', { code: code });
     }
 
@@ -220,6 +224,9 @@ if (canEdit == "true") {
     };
 
     svg.onmousedown = (event) => {
+        if (requestProcessing) {
+            return;
+        }
         mouseDown = true;
         // if pen is selected tool
         switch (tool) {
@@ -238,6 +245,7 @@ if (canEdit == "true") {
                     socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
+                    requestProcessing = true;
                     mouseDown = false;
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     break;
@@ -300,6 +308,8 @@ function compileBoard() {
         svg.appendChild(element);
     }
     canvas = document.getElementById("drawing-svg");
+    canvas.setAttribute('height', BOARD_HEIGHT+"px");
+    canvas.setAttribute('width', BOARD_WIDTH+"px");
 }
 
 // Add a point to currently being drawn line
@@ -322,7 +332,7 @@ function animate(timestamp) {
     poll -= deltaTime;
     if (poll < 0) {
         // if tool == pen /freeform drawing and mouse is held down, add a new point to the line
-        if (tool == TOOL_PEN && mouseDown && !mouseLeft) {
+        if(tool == TOOL_PEN && mouseDown && !mouseLeft && board[nextId]){
             plotPenPoint();
         }
         poll = POLL_RATE;
