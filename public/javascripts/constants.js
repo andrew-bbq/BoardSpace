@@ -4,8 +4,8 @@ const TOOL_RECTANGLE = 2;
 const TOOL_CIRCLE = 4;
 const TOOL_ERASER = 8;
 
-const BOARD_WIDTH = 500;
-const BOARD_HEIGHT = 500;
+const BOARD_WIDTH = 1000;
+const BOARD_HEIGHT = 750;
 const POLL_RATE = 10;
 
 let tool = TOOL_PEN;

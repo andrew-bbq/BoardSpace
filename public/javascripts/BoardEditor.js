@@ -238,6 +238,8 @@ function compileBoard() {
         svg.appendChild(element);
     }
     canvas = document.getElementById("drawing-svg");
+    canvas.setAttribute('height', BOARD_HEIGHT+"px");
+    canvas.setAttribute('width', BOARD_WIDTH+"px");
 }
 
 // Add a point to currently being drawn line
@@ -260,7 +262,7 @@ function animate(timestamp) {
     poll -= deltaTime;
     if (poll < 0) {
         // if tool == pen /freeform drawing and mouse is held down, add a new point to the line
-        if(tool == TOOL_PEN && mouseDown && !mouseLeft){
+        if(tool == TOOL_PEN && mouseDown && !mouseLeft && board[nextId]){
             plotPenPoint();
         }
         poll = POLL_RATE;
