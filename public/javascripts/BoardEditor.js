@@ -13,18 +13,15 @@ let newPoints = []; // the points that have been drawn that need to be emitted t
 const socket = io();
 const code = document.getElementById("code").value;
 
-$(".tool").click(function(){
-    switch($(this).val()){
+$(".tool").click(function () {
+    switch ($(this).val()) {
         case "Pen":
-            console.log("Pen selected");
             tool = TOOL_PEN;
             break;
         case "Eraser":
-            console.log("Eraser selected");
             tool = TOOL_ERASER;
             break;
         case "tool2":
-            console.log("Tool 2 selected");
             break;
         default:
             break;
@@ -33,47 +30,52 @@ $(".tool").click(function(){
     $(this).attr("id", "selected");
 });
 
-let undoFunc = function(){
-    console.log("undo");
-    if (undoStack.length != 0){
+let undoFunc = function () {
+    if (undoStack.length != 0) {
         data = undoStack[undoStack.length - 1];
-        console.log(data);
-        switch(data.type){
+        switch (data.type) {
             case "add":
                 // find position in board array?
                 delete board[data.id];
                 redoStack.push(undoStack.pop());
                 compileBoard();
-                socket.emit("erase", {code: code, id: data.id});
+                socket.emit("erase", { code: code, id: data.id });
                 break;
             default:
                 break;
         }
     }
-    console.log(board);
 }
 $("#undo").click(undoFunc);
 
-let redoFunc = function(){
-    console.log("redo");
-    if (redoStack.length != 0){
+let redoFunc = function () {
+    if (redoStack.length != 0) {
         data = redoStack[redoStack.length - 1];
-        console.log(data);
-        switch(data.type){
+        switch (data.type) {
             case "add":
                 // find position in board array?
                 board[data.id] = data.object;
                 undoStack.push(redoStack.pop());
                 compileBoard();
-                socket.emit("reAdd", {code: code, type: data.type, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                socket.emit("reAdd", { code: code, type: data.type, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
                 break;
             default:
                 break;
         }
     }
-    console.log(board);
 }
 $("#redo").click(redoFunc);
+
+document.addEventListener('keydown', function (event) {
+    if (event.ctrlKey && event.key === 'z') {
+        undoFunc();
+    }
+});
+document.addEventListener('keydown', function (event) {
+    if (event.ctrlKey && event.key === 'y') {
+        redoFunc();
+    }
+});
 
 socket.emit('join', { code: code });
 
@@ -135,12 +137,11 @@ socket.on('drawPen', function (data) {
     compileBoard();
 });
 
-socket.on('reAdd', function(data) {
-    switch(data.type){
+socket.on('reAdd', function (data) {
+    switch (data.type) {
         case "add":
             board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].setPath(data.path);
-            console.log(board[data.id]);
             break;
         default:
             break;
@@ -157,10 +158,10 @@ socket.on('clearBoard', function () {
 function erase(id) {
     delete board[id];
     compileBoard();
-    socket.emit('erase', {code: code, id: id});
+    socket.emit('erase', { code: code, id: id });
 }
 
-socket.on('erase', function(data) {
+socket.on('erase', function (data) {
     delete board[data.id];
     compileBoard();
 });
@@ -185,8 +186,8 @@ let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
 // Copy code button for just for testing 
 document.getElementById('Copy').addEventListener('click', copy);
 async function copy() {
-  let text = document.querySelector("#bcode").innerHTML;
-  await navigator.clipboard.writeText(text);
+    let text = document.querySelector("#bcode").innerHTML;
+    await navigator.clipboard.writeText(text);
 }
 
 // If the user has edit access, define the board editing listeners
@@ -221,7 +222,7 @@ if (canEdit == "true") {
     svg.onmousedown = (event) => {
         mouseDown = true;
         // if pen is selected tool
-        switch(tool) {
+        switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
                 socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
@@ -232,13 +233,13 @@ if (canEdit == "true") {
     document.onmouseup = (event) => {
         if (mouseDown) {
             // if pen is selected tool
-            switch (tool){
+            switch (tool) {
                 case TOOL_PEN:
                     socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
                     mouseDown = false;
-                    undoStack.push({type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN});
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     break;
                 default:
                     break;
@@ -251,7 +252,7 @@ if (canEdit == "true") {
         mouseLeft = true;
         // If mouse left the board, draw a line to where it left 
         if (mouseDown) {
-            switch(tool) {
+            switch (tool) {
                 case TOOL_PEN:
                     board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
                     newPoints.push({ x: mouseX, y: mouseY, type: "line" });
@@ -321,7 +322,7 @@ function animate(timestamp) {
     poll -= deltaTime;
     if (poll < 0) {
         // if tool == pen /freeform drawing and mouse is held down, add a new point to the line
-        if(tool == TOOL_PEN && mouseDown && !mouseLeft){
+        if (tool == TOOL_PEN && mouseDown && !mouseLeft) {
             plotPenPoint();
         }
         poll = POLL_RATE;
