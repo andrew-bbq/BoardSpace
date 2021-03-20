@@ -19,3 +19,5 @@ a {
   background-color: black;
   color: white;
 }
+
+svg * { pointer-events: all;}
