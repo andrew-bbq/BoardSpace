@@ -2,7 +2,6 @@ let nextId = 0; // the ID that will be used for the next drawing object added
 let poll = POLL_RATE; // the time between each poll for board editing listeners
 let mouseX = 0;
 let mouseY = 0;
-let mouseDown = false;
 let lastTimestamp;
 let board = {}; // list of drawingObjects
 let penSize = 3;
@@ -21,8 +20,9 @@ $(".tool").click(function(){
             console.log("Pen selected");
             tool = TOOL_PEN;
             break;
-        case "tool1":
-            console.log("Tool 1 selected");
+        case "Eraser":
+            console.log("Eraser selected");
+            tool = TOOL_ERASER;
             break;
         case "tool2":
             console.log("Tool 2 selected");
@@ -138,7 +138,19 @@ socket.on('drawPen', function (data) {
 // Receive server broadcast to clear the board
 socket.on('clearBoard', function () {
     clearBoard();
-})
+});
+
+
+function erase(id) {
+    delete board[id];
+    compileBoard();
+    socket.emit('erase', {code: code, id: id});
+}
+
+socket.on('erase', function(data) {
+    delete board[data.id];
+    compileBoard();
+});
 
 /**
  * newId
@@ -196,8 +208,12 @@ if (canEdit == "true") {
     svg.onmousedown = (event) => {
         mouseDown = true;
         // if pen is selected tool
-        board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-        socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
+        switch(tool) {
+            case TOOL_PEN:
+                board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
+                socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
+                break;
+        }
     }
 
     document.onmouseup = (event) => {
@@ -222,11 +238,15 @@ if (canEdit == "true") {
         mouseLeft = true;
         // If mouse left the board, draw a line to where it left 
         if (mouseDown) {
-            board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
-            newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-            socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
-            // points waiting to be broadcasted have been, so clear it
-            newPoints = [];
+            switch(tool) {
+                case TOOL_PEN:
+                    board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
+                    newPoints.push({ x: mouseX, y: mouseY, type: "line" });
+                    socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
+                    // points waiting to be broadcasted have been, so clear it
+                    newPoints = [];
+                    break;
+            }
         }
         compileBoard();
     }
@@ -288,7 +308,7 @@ function animate(timestamp) {
     poll -= deltaTime;
     if (poll < 0) {
         // if tool == pen /freeform drawing and mouse is held down, add a new point to the line
-        if(mouseDown && !mouseLeft){
+        if(tool == TOOL_PEN && mouseDown && !mouseLeft){
             plotPenPoint();
         }
         poll = POLL_RATE;
