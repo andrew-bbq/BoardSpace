@@ -17,13 +17,15 @@ const code = document.getElementById("code").value;
 
 socket.emit('join', { code: code });
 
-//  joinData
-//  Receive server broadcast to fill in the board on join
-//      data: 
-//      {
-//          nextId: current nextId for the board
-//          board: the board data for this board
-//      }
+/**
+ *  joinData
+ * Receive server broadcast to fill in the board on join
+ *   data: 
+ *   {
+ *       nextId: current nextId for the board
+ *       board: the board data for this board
+ *   }
+ */
 socket.on('joinData', function (data) {
     // Get the nextId for the board 
     nextId = data.nextId;
@@ -42,17 +44,19 @@ socket.on('joinData', function (data) {
     compileBoard();
 });
 
-//  drawPen
-//  Receive server broadcast for drawing with the pen
-//      data: 
-//      {
-//          code: the code for the board being drawn on
-//          id: the id of the pen object
-//          size: the stroke-width of the pen object
-//          color: the color of the pen object
-//          newPoints: the points being added to the Pen object's path
-//      }
-socket.on('drawPen', function (data) {   
+/**
+ * drawPen
+ * Receive server broadcast for drawing with the pen
+ *   data: 
+ *   {
+ *       code: the code for the board being drawn on
+ *       id: the id of the pen object
+ *       size: the stroke-width of the pen object
+ *       color: the color of the pen object
+ *       newPoints: the points being added to the Pen object's path
+ *   }
+ */
+socket.on('drawPen', function (data) {
     // Make sure that the object being changed isn't being changed by this user rn
     if (nextId != data.id) {
         // If this board already has this Pen object, then update it accordingly
@@ -77,12 +81,14 @@ socket.on('clearBoard', function () {
     clearBoard();
 })
 
-//  newId
-//  Get a new ID from the server to attach to a new drawing object
-//      data: 
-//      {
-//          newId: the new Id to be the nextId
-//      }
+/**
+ * newId
+ * Get a new ID from the server to attach to a new drawing objec
+ *   data: 
+ *   {
+ *       newId: the new Id to be the nextId
+ *   }
+ */
 socket.on('newId', function (data) {
     nextId = data.newId;
 });
@@ -173,16 +179,6 @@ if (canEdit == "true") {
             mouseLeft = false;
         }
     }
-
-    // document.onmouseup = function () {
-    //     // If was drawing but left the board
-    //     console.log(mouseDown);
-    //     if (mouseDown) {
-    //         socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
-    //         socket.emit("requestNewId", { code: code });
-    //         mouseDown = false;
-    //     }
-    // }
 }
 
 // Clear the board
