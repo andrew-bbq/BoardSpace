@@ -5,6 +5,18 @@
   <title>BoardSpace: A Space for Boards</title>
   <link rel='stylesheet' href='/stylesheets/style.css' />
   <script src="/javascripts/classes.js"></script>
+  <style>
+    .tool{
+      background-color: white;
+      color: black;
+    }
+    .tool:active{
+      background-color: black;
+      color: white;
+    }
+
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
 <body>
@@ -26,14 +38,16 @@
 
       <div id="drawing-goes-here"><svg width="500" height="500" id="drawing-svg"></svg></div>
       <div>
-        <button type="button" class="btn btn-primary">Pen</button>
-        <button type="button" class="btn btn-primary">Other tool 1</button>
-        <button type="button" class="btn btn-primary">Other tool 2</button>
+        <input class="tool" type="button" value="Pen">
+        <input class="tool" type="button" value="tool1">
+        <input class="tool" type="button" value="tool2">
       </div>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <div hidden id="canEdit" canEdit=<%=canEdit %>
   ></div>
+<script src="/javascripts/constants.js"></script>
 <script src="/javascripts/BoardEditor.js"></script>
 
 </html>
+

@@ -1,6 +1,3 @@
-const BOARD_WIDTH = 500;
-const BOARD_HEIGHT = 500;
-const POLL_RATE = 10;
 let nextId = 0; // the ID that will be used for the next drawing object added
 let poll = POLL_RATE; // the time between each poll for board editing listeners
 let mouseX = 0;
@@ -10,10 +7,30 @@ let lastTimestamp;
 let board = {}; // list of drawingObjects
 let penSize = 3;
 let color = 'black';
+let tool = TOOL_PEN;
 let mouseLeft; // has the mouse left the board
 let newPoints = []; // the points that have been drawn that need to be emitted to other clients (for pen)
 const socket = io();
 const code = document.getElementById("code").value;
+
+$(".tool").click(function(){
+    switch($(this).val()){
+        case "Pen":
+            console.log("Pen selected");
+            tool = TOOL_PEN;
+            break;
+        case "tool1":
+            console.log("Tool 1 selected");
+            break;
+        case "tool2":
+            console.log("Tool 2 selected");
+            break;
+        default:
+            break;
+    }
+    $(".tool").removeAttr("id");
+    $(this).attr("id", "selected");
+});
 
 socket.emit('join', { code: code });
 
