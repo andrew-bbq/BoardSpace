@@ -6,7 +6,6 @@ let lastTimestamp;
 let board = {}; // list of drawingObjects
 let penSize = 3;
 let color = 'black';
-let tool = TOOL_PEN;
 let undoStack = [];
 let redoStack = [];
 let mouseLeft; // has the mouse left the board
@@ -34,7 +33,7 @@ $(".tool").click(function(){
     $(this).attr("id", "selected");
 });
 
-$("#undo").click( function(){
+let undoFunc = function(){
     console.log("undo");
     if (undoStack.length != 0){
         data = undoStack[undoStack.length - 1];
@@ -43,18 +42,19 @@ $("#undo").click( function(){
             case "add":
                 // find position in board array?
                 delete board[data.id];
-                let undo = undoStack.pop()
-                redoStack.push(undo);
+                redoStack.push(undoStack.pop());
                 compileBoard();
+                socket.emit("erase", {code: code, id: data.id});
                 break;
             default:
                 break;
         }
     }
     console.log(board);
-});
+}
+$("#undo").click(undoFunc);
 
-$("#redo").click( function(){
+let redoFunc = function(){
     console.log("redo");
     if (redoStack.length != 0){
         data = redoStack[redoStack.length - 1];
@@ -63,16 +63,17 @@ $("#redo").click( function(){
             case "add":
                 // find position in board array?
                 board[data.id] = data.object;
-                let redo = redoStack.pop()
-                undoStack.push(redo);
+                undoStack.push(redoStack.pop());
                 compileBoard();
+                socket.emit("reAdd", {code: code, type: data.type, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
                 break;
             default:
                 break;
         }
     }
     console.log(board);
-});
+}
+$("#redo").click(redoFunc);
 
 socket.emit('join', { code: code });
 
@@ -134,12 +135,24 @@ socket.on('drawPen', function (data) {
     compileBoard();
 });
 
+socket.on('reAdd', function(data) {
+    switch(data.type){
+        case "add":
+            board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            board[data.id].setPath(data.path);
+            console.log(board[data.id]);
+            break;
+        default:
+            break;
+    }
+    compileBoard();
+});
+
 // clearBoard
 // Receive server broadcast to clear the board
 socket.on('clearBoard', function () {
     clearBoard();
 });
-
 
 function erase(id) {
     delete board[id];
