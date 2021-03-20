@@ -8,6 +8,7 @@ let penSize = 3;
 let color = 'black';
 let mouseLeft; // has the mouse left the board
 let newPoints = []; // the points that have been drawn that need to be emitted to other clients (for pen)
+let requestProcessing = false;
 const socket = io();
 const code = document.getElementById("code").value;
 
@@ -85,6 +86,7 @@ socket.on('drawPen', function (data) {
             board[data.id].updatePathData(data.newPoints);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
             }
         }
     }
@@ -118,6 +120,7 @@ socket.on('erase', function(data) {
  *   }
  */
 socket.on('newId', function (data) {
+    requestProcessing = false;
     nextId = data.newId;
 });
 
@@ -147,6 +150,7 @@ if (canEdit == "true") {
     clearer.onclick = function () {
         clearBoard();
         socket.emit("requestNewId", { code: code });
+        requestProcessing = true;
         socket.emit('clearBoard', { code: code });
     }
 
@@ -163,6 +167,9 @@ if (canEdit == "true") {
     };
 
     svg.onmousedown = (event) => {
+        if (requestProcessing) {
+            return;
+        }
         mouseDown = true;
         // if pen is selected tool
         switch(tool) {
@@ -181,6 +188,7 @@ if (canEdit == "true") {
                 socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
                 // get a new id for nextId
                 socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
             }
             mouseDown = false;
         }
