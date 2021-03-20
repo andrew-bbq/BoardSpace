@@ -8,6 +8,8 @@ let board = {}; // list of drawingObjects
 let penSize = 3;
 let color = 'black';
 let tool = TOOL_PEN;
+let undoStack = [];
+let redoStack = [];
 let mouseLeft; // has the mouse left the board
 let newPoints = []; // the points that have been drawn that need to be emitted to other clients (for pen)
 const socket = io();
@@ -30,6 +32,46 @@ $(".tool").click(function(){
     }
     $(".tool").removeAttr("id");
     $(this).attr("id", "selected");
+});
+
+$("#undo").click( function(){
+    console.log("undo");
+    if (undoStack.length != 0){
+        data = undoStack[undoStack.length - 1];
+        console.log(data);
+        switch(data.type){
+            case "add":
+                // find position in board array?
+                delete board[data.id];
+                let undo = undoStack.pop()
+                redoStack.push(undo);
+                compileBoard();
+                break;
+            default:
+                break;
+        }
+    }
+    console.log(board);
+});
+
+$("#redo").click( function(){
+    console.log("redo");
+    if (redoStack.length != 0){
+        data = redoStack[redoStack.length - 1];
+        console.log(data);
+        switch(data.type){
+            case "add":
+                // find position in board array?
+                board[data.id] = data.object;
+                let redo = redoStack.pop()
+                undoStack.push(redo);
+                compileBoard();
+                break;
+            default:
+                break;
+        }
+    }
+    console.log(board);
 });
 
 socket.emit('join', { code: code });
@@ -161,10 +203,18 @@ if (canEdit == "true") {
     document.onmouseup = (event) => {
         if (mouseDown) {
             // if pen is selected tool
-            socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
-            // get a new id for nextId
-            socket.emit("requestNewId", { code: code });
-            mouseDown = false;
+            switch (tool){
+                case TOOL_PEN:
+                    socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
+                    // get a new id for nextId
+                    socket.emit("requestNewId", { code: code });
+                    mouseDown = false;
+                    undoStack.push({type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN});
+                    break;
+                default:
+                    break;
+            }
+            redoStack = [];
         }
     }
 
