@@ -92,3 +92,5 @@ class Pen extends DrawingObject {
         this.path.setAttribute("d", this.path.getAttribute("d") + pathString);
     }
 }
+
+module.exports = {Pen}
