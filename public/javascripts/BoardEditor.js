@@ -126,13 +126,6 @@ let svg = document.getElementById("drawing-svg");
 // does the user have editing access
 canEdit = document.getElementById("canEdit").value == "true";
 
-// Copy code button for just for testing 
-document.getElementById('Copy').addEventListener('click', copy);
-async function copy() {
-  let text = document.querySelector("#bcode").innerHTML;
-  await navigator.clipboard.writeText(text);
-}
-
 // If the user has edit access, define the board editing listeners
 if (canEdit) {
     let pensizer = document.getElementById("pensize");
