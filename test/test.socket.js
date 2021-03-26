@@ -14,11 +14,13 @@ var options = {
 // Poor attempt at socket test
 describe('Socket connection', () => {
 
-    var socket1 = io.connect('www.boardspace.us');
+    var client1 = io.connect('www.boardspace.us');
+    var client2 = io.connect('www.boardspace.us');
     
 
-    socket1.disconnect();
-    socket2.disconnect();
+
+    client1.disconnect();    
+    client2.disconnect();
 });
 
 
