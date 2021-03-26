@@ -127,7 +127,7 @@ socket.on('newId', function (data) {
 // get svg
 let svg = document.getElementById("drawing-svg");
 // does the user have editing access
-let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
+canEdit = document.getElementById("canEdit").value == "true";
 
 // Copy code button for just for testing 
 document.getElementById('Copy').addEventListener('click', copy);
@@ -137,7 +137,7 @@ async function copy() {
 }
 
 // If the user has edit access, define the board editing listeners
-if (canEdit == "true") {
+if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
     let colorer = document.getElementById("color");

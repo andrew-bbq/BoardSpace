@@ -52,7 +52,8 @@ class Pen extends DrawingObject {
             }
         };
         this.path.onmousedown = function() {
-            if (tool == TOOL_ERASER) {
+            if (tool == TOOL_ERASER && canEdit) {
+                console.log(canEdit);
                 erase(tempId);
             }
         }
