@@ -45,6 +45,18 @@ class Pen extends DrawingObject {
         this.path.setAttribute("d", "");
     }
     getSvg() {
+        let tempId = this.id;
+        this.path.onmouseenter = function() {
+            if (mouseDown && tool == TOOL_ERASER) {
+                erase(tempId);
+            }
+        };
+        this.path.onmousedown = function() {
+            if (tool == TOOL_ERASER && canEdit) {
+                console.log(canEdit);
+                erase(tempId);
+            }
+        }
         return this.path;
     }
 

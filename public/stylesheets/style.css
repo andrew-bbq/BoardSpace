@@ -14,3 +14,10 @@ a {
 #drawing-svg {
   border: solid 1px black;
 }
+
+#selected {
+  background-color: black;
+  color: white;
+}
+
+svg * { pointer-events: all;}

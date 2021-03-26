@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
         }
         nextIds[code]++;
         // send board and next id back to user
-        socket.emit("joinData", {nextId: nextIds[code], board: boards[code]})
+        socket.emit("joinData", {nextId: nextIds[code], board: boards[code]});
     });
 
     //  drawPen
@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
     //          newPoints: the points being added to the Pen object's path
     //      }
     socket.on("drawPen", function(data) {
-        socket.to(data.code).emit('drawPen', data)
+        socket.to(data.code).emit('drawPen', data);
     });
 
     //  addPen
@@ -68,6 +68,11 @@ io.on("connection", (socket) => {
 
     socket.on("updateTransform", function(data) {
 
+    });
+
+    socket.on('erase', function(data) {
+        delete boards[data.code][data.id];
+        socket.to(data.code).emit('erase', data);
     });
     
     //  requestNewId
