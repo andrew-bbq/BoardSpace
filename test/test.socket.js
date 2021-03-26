@@ -1,6 +1,5 @@
 const assert = require('assert');
 const expect = require('chai').expect;
-var app = require('../routes/index'); 
 
 // tentative socketio testing code
 const io = require('socket.io-client');
@@ -13,10 +12,23 @@ var options = {
 
 // Poor attempt at socket test
 describe('Socket connection', () => {
+    var client1, client2;
+    client1 = io.connect(socketUrl, options);
+    client2 = io.connect(socketUrl, options);
 
-    var client1 = io.connect('www.boardspace.us');
-    var client2 = io.connect('www.boardspace.us');
+    it('should not error on connection', () => {
+        try{
+            let c = io.connect(socketUrl, options);
+            c.disconnect();
+        } catch (e) {
+            console.error(e);
+        }
+    });
     
+    it('', () =>{
+
+    });
+
 
 
     client1.disconnect();    
@@ -31,7 +43,7 @@ describe('Socket connection', () => {
 //     // testing goodness goes here
 //     it('should send and receive a message', function (done) {
 //         // Set up client1 connection
-//         client1 = io.connect(socketUrl, options);
+//         client1 = io.connect();
 
 //         // Set up event listener.  This is the actual test we're running
 //         client1.on('message', function (msg) {
