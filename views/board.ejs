@@ -25,7 +25,7 @@
   <input type="hidden" id="code" value="<%=boardcode%>" />
   <h1>Board <span id="bcode">
       <%= boardcode %>
-    </span> <button id="Copy"> Copy </button></h1>
+    </span></h1>
   <h2>
     <% if (canEdit) { %>
       Editor
@@ -43,7 +43,6 @@
       <div>
         <input class="tool" type="button" value="Pen" id="selected">
         <input class="tool" type="button" value="Eraser">
-        <input class="tool" type="button" value="tool2">
       </div>
 </body>
 <script src="/socket.io/socket.io.js"></script>

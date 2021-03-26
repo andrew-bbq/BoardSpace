@@ -22,9 +22,6 @@ $(".tool").click(function(){
             console.log("Eraser selected");
             tool = TOOL_ERASER;
             break;
-        case "tool2":
-            console.log("Tool 2 selected");
-            break;
         default:
             break;
     }
