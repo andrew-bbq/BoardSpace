@@ -110,4 +110,6 @@ router.get('/board', function (req, res, next) {
   res.render('board', { boardcode: code, canEdit: canEdit });
 });
 
-module.exports = router;
+module.exports = {router, generateCode};
+// exports.router = router;
+// exports.generateCode = generateCode;

@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha"
+    "test": "nyc mocha --timeout 10000"
   },
   "dependencies": {
+    "chai-http": "^4.3.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "ejs": "~2.6.1",
@@ -15,12 +16,14 @@
     "http-errors": "~1.6.3",
     "jsdom": "^16.5.1",
     "morgan": "~1.9.1",
+    "nyc": "^15.1.0",
     "socket.io": "^4.0.0",
     "socket.io-client": "^4.0.0"
   },
   "devDependencies": {
     "chai": "^4.3.4",
     "mocha": "^8.3.2",
-    "mocha-jsdom": "^2.0.0"
+    "mocha-jsdom": "^2.0.0",
+    "supertest": "^6.1.3"
   }
 }

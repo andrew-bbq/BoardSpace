@@ -1,5 +1,8 @@
 const assert = require('assert');
 const expect = require('chai').expect;
+const request = require('supertest');
+const express = require('express');
+const app = express();
 
 // tentative socketio testing code
 const io = require('socket.io-client');
@@ -24,9 +27,19 @@ describe('Socket connection', () => {
             console.error(e);
         }
     });
-    
-    it('', () =>{
 
+    it('should not error when creating board', () => {
+        
+    });
+    
+    it('should not error when joining a board', () =>{
+        try {
+            client1.emit('join', "ABCD");
+            client2.emit('join', "ABCD");
+        } catch (e) {
+            console.log(e);
+            throw "Clients could not join a board";
+        }
     });
 
 
