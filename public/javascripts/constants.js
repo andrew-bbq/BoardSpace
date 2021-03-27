@@ -10,3 +10,4 @@ const POLL_RATE = 10;
 
 let tool = TOOL_PEN;
 let mouseDown = false;
+let canEdit = false;

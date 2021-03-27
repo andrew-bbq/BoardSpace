@@ -22,9 +22,6 @@ $(".tool").click(function(){
             console.log("Eraser selected");
             tool = TOOL_ERASER;
             break;
-        case "tool2":
-            console.log("Tool 2 selected");
-            break;
         default:
             break;
     }
@@ -127,17 +124,10 @@ socket.on('newId', function (data) {
 // get svg
 let svg = document.getElementById("drawing-svg");
 // does the user have editing access
-let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
-
-// Copy code button for just for testing 
-document.getElementById('Copy').addEventListener('click', copy);
-async function copy() {
-  let text = document.querySelector("#bcode").innerHTML;
-  await navigator.clipboard.writeText(text);
-}
+canEdit = document.getElementById("canEdit").value == "true";
 
 // If the user has edit access, define the board editing listeners
-if (canEdit == "true") {
+if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
     let colorer = document.getElementById("color");
