@@ -1,12 +1,7 @@
 let chai = require('chai');
 let chaiHttp = require('chai-http');
-// let index = require('../routes/index');
 let express = require('express');
-// const app = express();
-// var app = require("../app");
-// const session = require('express-session');
 var routes = require('../routes/index.js').router;
-// var generateCode = require('../routes/index.js').generateCode;
 let should = chai.should();
 const path = require('path');
 const serve = require('express').static;
@@ -14,9 +9,10 @@ var index = require("../routes/index.js");
 const assert = require('assert');
 const expect = require('chai').expect
 const request = require('supertest');
-var app = express();
+var app = require('../app');
 app.use(index.router);
-// indexRouter.generateCode();
+
+
 chai.use(chaiHttp);
 // tests generateCode()
 describe('Code', () => {
@@ -36,59 +32,60 @@ describe('Code', () => {
 });
 app.set('view engine', 'ejs');
 app.engine('ejs', require('ejs').__express);
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, '../views'))
 // tests router.GET methods
 describe('Route Index', () => {
-  it('should render the createboard view', (done) => {
+  describe('GET Methods', () => {
+    it('should render the createboard view', (done) => {
+        chai.request(app)
+            // .keepOpen()
+            .get('/createboard')
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                done();
+            });
+    });
+    it('should render the joinboard view', (done) => {
       chai.request(app)
-          .get('/createboard')
+          .get('/joinboard')
           .end((err, res) => {
               expect(res).to.have.status(200);
               done();
           });
-  });
-  it('should render the joinboard view', (done) => {
-    chai.request(app)
-        .get('/joinboard')
-        .end((err, res) => {
-            expect(res).to.have.status(200);
-            done();
-        });
-  });
-  it('should render the board view', (done) => {
-    chai.request(app)
-        .get('/board')
-        .end((err, res) => {
-            expect(res).to.have.status(200);
-            done();
-        });
-  });
-});
-// tests router.POST methods
-describe('Route Index', () => {
-  it('should render the createboard view', (done) => {
+    });
+    it('should NOT render the board view if no code given', (done) => {
       chai.request(app)
-          .post('/createboard')
+          .get('/board')
           .end((err, res) => {
-              expect(res).to.have.status(200);
+            
+              expect(res).to.have.status(500);
               done();
           });
+    });
   });
-  it('should render the joinboard view', (done) => {
-    chai.request(app)
-        .post('/joinboard')
-        .end((err, res) => {
-            expect(res).to.have.status(200);
+  // tests router.POST methods
+  describe('POST Methods', () => {
+    it('should NOT redirect to board view without password', (done) => {
+        chai.request(app)
+            // .keepOpen()
+            .post('/createboard')
+            .end((err, res) => {
+              res.should.have.status(500);
+              res.body.should.be.a('object');
+              // res.body.should.have.property('errors');
+              // res.body.errors.should.have.property('pages');
+              // res.body.errors.pages.should.have.property('kind').eql('required');
             done();
-        });
-  });
-  it('should render the board view', (done) => {
-    chai.request(app)
-        .post('/board')
-        .end((err, res) => {
-            expect(res).to.have.status(200);
-            done();
-        });
+            });
+    });
+    it('should NOT redirect to board without password', (done) => {
+      chai.request(app)
+          .post('/joinboard')
+          .end((err, res) => {
+              expect(res).to.have.status(500);
+              done();
+          });
+    });
   });
 });
-// // module.exports = router;
+

@@ -102,6 +102,7 @@ router.post('/joinboard', function (req, res, next) {
     }
   }
   return res.redirect('board?code=' + code);
+
 });
 
 router.get('/board', function (req, res, next) {
