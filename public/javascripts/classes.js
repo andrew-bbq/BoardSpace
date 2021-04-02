@@ -103,3 +103,48 @@ class Pen extends DrawingObject {
         this.path.setAttribute("d", this.path.getAttribute("d") + pathString);
     }
 }
+
+class TextObject extends DrawingObject {
+    // TextObject:
+    //  id: drawingObject id
+    //  lowerLeft: bounding rectangle lower left corner (for select)
+    //  upperRight: bounding rectangle upper right corner
+    //  size: font size
+    //  color: text color
+    constructor(id, lowerLeft, upperRight, size, color) {
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight);
+        this.size = size;
+        this.color = color;
+        // Set up the SVG path
+            // used method found at:
+            // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
+            // http://jsfiddle.net/brx3xm59/
+        this.foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        this.textDiv = document.createElement("div");
+        this.textNode = document.createTextNode("Click to edit");
+        this.textDiv.appendChild(this.textNode);
+        this.textDiv.setAttribute("contentEditable", "true");
+        this.textDiv.setAttribute("width", "auto");
+        this.foreignText.setAttribute("width", "100%");
+        this.foreignText.setAttribute("height", "100%");
+        this.textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
+        this.foreignText.style = "text-align: left; font-size: "+this.size+"; color: "+this.color+";";
+        this.textDiv.style = "display: inline-block;";
+        this.foreignText.setAttribute("transform", "translate("+mouseX+" "+mouseY+")");
+        //svg.appendChild(this.foreignText);
+        this.foreignText.appendChild(this.textDiv);
+    }
+    getSvg() {
+        return this.foreignText;
+    }
+
+    // Set the path string
+    setText(text){
+        this.textNode.textContent = text;
+    }
+
+    // Get the path string
+    getText(){
+        return this.textNode.textContent;
+    }
+}

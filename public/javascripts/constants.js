@@ -3,6 +3,7 @@ const TOOL_HIGHLIGHTER = 1;
 const TOOL_RECTANGLE = 2;
 const TOOL_CIRCLE = 4;
 const TOOL_ERASER = 8;
+const TOOL_Text = 9;
 
 const BOARD_WIDTH = 1000;
 const BOARD_HEIGHT = 750;

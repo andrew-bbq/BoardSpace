@@ -66,6 +66,25 @@ io.on("connection", (socket) => {
         boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
     });
 
+/////////////////////////////////////////////TEXTOBJECT////////////////////////////////////////////////////////////////
+
+    //  addText
+    //  Broadcast client added textObject
+    //      data: 
+    //      {
+    //          code: the code for the board being drawn on
+    //          id: the id of the pen object
+    //          size: the font-size
+    //          color: the color of the text
+    //          text: the text in the textObject
+    //      }
+    socket.on("addText", function(data) {
+        socket.to(data.code).emit('addText', data);
+        boards[data.code][data.id] = {type:"Text", data: {text: data.text, size: data.size, color:data.color}};
+    });
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     socket.on("reAdd", function(data) {
         boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
         socket.to(data.code).emit('reAdd', data);

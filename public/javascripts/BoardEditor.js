@@ -11,6 +11,7 @@ let redoStack = [];
 let mouseLeft; // has the mouse left the board
 let newPoints = []; // the points that have been drawn that need to be emitted to other clients (for pen)
 let requestProcessing = false;
+let mouseOnText = false;
 const socket = io();
 const code = document.getElementById("code").value;
 
@@ -22,7 +23,8 @@ $(".tool").click(function () {
         case "Eraser":
             tool = TOOL_ERASER;
             break;
-        case "tool2":
+        case "Text":
+            tool = TOOL_Text;
             break;
         default:
             break;
@@ -139,6 +141,40 @@ socket.on('drawPen', function (data) {
     compileBoard();
 });
 
+/**
+ * addText
+ * Receive server broadcast for new textObject
+ *   data: 
+ *   {
+ *       code: the code for the board being drawn on
+ *       id: the id of the pen object
+ *       size: the font-size
+ *       color: the color of the text
+ *       text: the text in the textObject
+ *   }
+ */
+ socket.on('addText', function (data) {
+    // Make sure that the object being changed isn't being changed by this user rn
+    if (nextId != data.id) {
+        // If this board already has this textObject, then update it accordingly
+        if (board[data.id]) {
+            board[data.id].setText(data.text);
+            board[data.id].color(data.color);
+            board[data.id].size(data.size);
+        }
+        // Otherwise add this textObject to the board
+        else {
+            board[data.id] = new TextObject(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            board[data.id].setText(data.text);
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
+            }
+        }
+    }
+    compileBoard();
+});
+
 socket.on('reAdd', function (data) {
     switch (data.type) {
         case "add":
@@ -234,6 +270,40 @@ if (canEdit == "true") {
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
                 socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
                 break;
+            case TOOL_Text:
+                // used method found at:
+                // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
+                // http://jsfiddle.net/brx3xm59/
+                
+                if (!mouseOnText) {
+                    /**
+                    let foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+                    let textDiv = document.createElement("div");
+                    let textNode = document.createTextNode("Click to edit");
+                    textDiv.appendChild(textNode);
+                    textDiv.setAttribute("contentEditable", "true");
+                    textDiv.setAttribute("width", "auto");
+                    foreignText.setAttribute("width", "100%");
+                    foreignText.setAttribute("height", "100%");
+                    textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
+                    foreignText.style = "text-align: left; font-size: 24; color: purple";
+                    textDiv.style = "display: inline-block;";
+                    foreignText.setAttribute("transform", "translate("+mouseX+" "+mouseY+")");
+                    svg.appendChild(foreignText);
+                    foreignText.appendChild(textDiv);
+                    */
+                    board[nextId] = new TextObject(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize+20, color);
+                    socket.emit('drawText', { code: code, id: nextId, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color});
+                    // get a new id for nextId
+                    socket.emit("requestNewId", { code: code });
+                    requestProcessing = true;
+                    compileBoard();
+                    break;
+                } else {
+                    mouseOnText = false;
+                    compileBoard();
+                    break;
+                }
         }
     }
 
@@ -275,17 +345,20 @@ if (canEdit == "true") {
     svg.onmouseenter = function (event) {
         // if reentering the board
         if (mouseLeft) {
-            // if still holding down pen also if pen is current tool
-            if (mouseDown) {
-                // get accurate x,y on reenter
-                let box = svg.getBoundingClientRect();
-                mouseX = event.clientX - box.left;
-                mouseY = event.clientY - box.top;
-                // add a moveTo to that point so that the pen doesnt shoot over to it
-                board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "jump" }]);
-                newPoints.push({ x: mouseX, y: mouseY, type: "jump" });
-            }
-            mouseLeft = false;
+            switch (tool) {
+                case TOOL_PEN:
+                    if (mouseDown) {
+                        // get accurate x,y on reenter
+                        let box = svg.getBoundingClientRect();
+                        mouseX = event.clientX - box.left;
+                        mouseY = event.clientY - box.top;
+                        // add a moveTo to that point so that the pen doesnt shoot over to it
+                        board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "jump" }]);
+                        newPoints.push({ x: mouseX, y: mouseY, type: "jump" });
+                    }
+                    mouseLeft = false;
+                    break;
+                }
         }
     }
 }
