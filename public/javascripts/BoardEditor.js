@@ -131,13 +131,10 @@ socket.on('joinData', function (data) {
                 newBoard[id].setPath(sentBoard[id].data.path);
                 break;
             case "Text":
-                newBoard[id] = new TextObject(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                newBoard[id].setText(data.text);
+                newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
+                console.log(sentBoard[id].data.text);
+                newBoard[id].setText(sentBoard[id].data.text);
                 break;
-        }
-        else if (sentBoard[id].type == "Text") {
-            newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-            newBoard[id].setText(data.text);
         }
     }
     console.log(newBoard);
