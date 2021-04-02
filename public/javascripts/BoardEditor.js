@@ -44,6 +44,31 @@ let undoFunc = function () {
                 compileBoard();
                 socket.emit("erase", { code: code, id: data.id });
                 break;
+            case "clear":
+                // Add back all of the things deleted with the clear
+                let clear = undoStack.pop();
+                redoStack.push(clear);
+                let clearboard = clear.board;
+                for (let i=0; i < clearboard.length; i++){
+                    if(clearboard[i]){
+                        if(board[i]){
+                            console.log("tried to write over an object with undo clear");
+                            continue
+                        }
+                        let object = clearboard[i];
+                        board[i] =object;
+                        switch(object.constructor.name){
+                            case "Pen":
+                                socket.emit("reAdd", { code: code, type:"Pen", id: object.id, path: object.getPath(), size: object.size, color: object.color});
+                                break;
+                            case "Text":
+                                socket.emit("reAdd", { code: code, type:"Text", id: object.id, size: object.size, color: object.color, text: object.getText()});
+                                break;
+                        }
+                    }
+                }
+                compileBoard();
+                break;
             default:
                 break;
         }
@@ -60,7 +85,7 @@ let redoFunc = function () {
                 board[data.id] = data.object;
                 undoStack.push(redoStack.pop());
                 compileBoard();
-                socket.emit("reAdd", { code: code, type: data.type, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                socket.emit("reAdd", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
                 break;
             default:
                 break;
@@ -99,15 +124,23 @@ socket.on('joinData', function (data) {
     let newBoard = {};
     // Get the board objects
     for (id in sentBoard) {
-        if (sentBoard[id].type == "Pen") {
-            newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-            newBoard[id].setPath(sentBoard[id].data.path);
+        console.log(sentBoard[id].type);
+        switch (sentBoard[id].type) {
+            case "Pen":
+                newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id].setPath(sentBoard[id].data.path);
+                break;
+            case "Text":
+                newBoard[id] = new TextObject(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id].setText(data.text);
+                break;
         }
         else if (sentBoard[id].type == "Text") {
             newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
             newBoard[id].setText(data.text);
         }
     }
+    console.log(newBoard);
     board = newBoard;
     // Draw the objects
     compileBoard();
@@ -178,10 +211,17 @@ socket.on('drawPen', function (data) {
 });
 
 socket.on('reAdd', function (data) {
+    if(board[data.id]){
+        console.log("tried to write over an object with readd");
+    }  
     switch (data.type) {
-        case "add":
-            board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+        case "Pen": 
+        board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].setPath(data.path);
+            break;
+        case "Text":
+            board[data.id] = new TextObject(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            board[data.id].setText(data.text);
             break;
         default:
             break;
@@ -321,7 +361,7 @@ if (canEdit == "true") {
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
                     mouseDown = false;
-                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Pen" });
                     break;
                 default:
                     break;
@@ -369,8 +409,15 @@ if (canEdit == "true") {
 
 // Clear the board
 function clearBoard() {
+    // let oldboard;
+    // for (let i = 0; i < board.length; i++) {
+    //     if(board[i]){
+    //         oldboard
+    //     }
+    // }
+    undoStack.push({ type: "clear", board:board });
     board = [];
-    compileBoard();
+    compileBoard();  
 }
 
 // Draw the drawingObjects on the board

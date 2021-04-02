@@ -86,8 +86,17 @@ io.on("connection", (socket) => {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     socket.on("reAdd", function(data) {
-        boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
-        socket.to(data.code).emit('reAdd', data);
+        switch (data.type) { 
+            case "Pen":
+                boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
+                socket.to(data.code).emit('reAdd', {type:"Pen",path: data.path, size: data.size, color:data.color});
+                break;
+            case "Text":
+                boards[data.code][data.id] = {type:"Text", data: {text:data.text, size: data.size, color:data.color}};
+                socket.to(data.code).emit('reAdd', {type:"Text",text:data.text, size: data.size, color:data.color});
+                break;
+        }
+        
     });
 
     socket.on("updateTransform", function(data) {
