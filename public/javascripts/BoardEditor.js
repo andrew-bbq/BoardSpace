@@ -103,6 +103,10 @@ socket.on('joinData', function (data) {
             newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
             newBoard[id].setPath(sentBoard[id].data.path);
         }
+        else if (sentBoard[id].type == "Text") {
+            newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
+            newBoard[id].setText(data.text);
+        }
     }
     board = newBoard;
     // Draw the objects
@@ -159,12 +163,10 @@ socket.on('drawPen', function (data) {
         // If this board already has this textObject, then update it accordingly
         if (board[data.id]) {
             board[data.id].setText(data.text);
-            board[data.id].color(data.color);
-            board[data.id].size(data.size);
         }
         // Otherwise add this textObject to the board
         else {
-            board[data.id] = new TextObject(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            board[data.id] = new TextObject(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].setText(data.text);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
@@ -292,8 +294,10 @@ if (canEdit == "true") {
                     svg.appendChild(foreignText);
                     foreignText.appendChild(textDiv);
                     */
-                    board[nextId] = new TextObject(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize+20, color);
-                    socket.emit('drawText', { code: code, id: nextId, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color});
+                    let textLowerLeftX = mouseX;
+                    let textLowerLeftY = mouseY;
+                    board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize+20, color);
+                    socket.emit('addText', { code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color});
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;

@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
     //      }
     socket.on("addText", function(data) {
         socket.to(data.code).emit('addText', data);
-        boards[data.code][data.id] = {type:"Text", data: {text: data.text, size: data.size, color:data.color}};
+        boards[data.code][data.id] = {type:"Text", data: {x: data.x, y: data.y, text: data.text, size: data.size, color:data.color}};
     });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
