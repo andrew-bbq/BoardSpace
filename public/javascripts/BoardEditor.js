@@ -24,7 +24,7 @@ $(".tool").click(function () {
             tool = TOOL_ERASER;
             break;
         case "Text":
-            tool = TOOL_Text;
+            tool = TOOL_TEXT;
             break;
         default:
             break;
@@ -323,7 +323,7 @@ if (canEdit == "true") {
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
                 socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
                 break;
-            case TOOL_Text:
+            case TOOL_TEXT:
                 // used method found at:
                 // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
                 // http://jsfiddle.net/brx3xm59/
