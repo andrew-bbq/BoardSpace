@@ -48,6 +48,12 @@ let undoFunc = function () {
                 compileBoard();
                 socket.emit("erase", { code: code, id: data.id });
                 break;
+            case "erase":
+                board[data.id] = data.object;
+                redoStack.push(undoStack.pop());
+                compileBoard();
+                socket.emit("reAdd", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color});
+                break;
             case "clear":
                 // Add back all of the things deleted with the clear
                 let clear = undoStack.pop();
@@ -91,6 +97,12 @@ let redoFunc = function () {
                 compileBoard();
                 socket.emit("reAdd", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
                 break;
+            case "erase":
+                delete board[data.id];
+                undoStack.push(redoStack.pop());
+                compileBoard();
+                socket.emit("erase", { code: code, id: data.id });
+                break;
             default:
                 break;
         }
@@ -98,14 +110,19 @@ let redoFunc = function () {
 }
 $("#redo").click(redoFunc);
 
+
 document.addEventListener('keydown', function (event) {
-    if (event.ctrlKey && event.key === 'z') {
+    if (event.ctrlKey && event.key === 'z' && tool != TOOL_TEXT) {
         undoFunc();
+        event.preventDefault();
     }
+
 });
 document.addEventListener('keydown', function (event) {
-    if (event.ctrlKey && event.key === 'y') {
+    // Not tool text so that undo/redo works inside the text box and doesnt effect other things at same time
+    if (event.ctrlKey && event.key === 'y'&& tool != TOOL_TEXT) { 
         redoFunc();
+        event.preventDefault();
     }
 });
 
@@ -251,6 +268,7 @@ socket.on('clearBoard', function () {
 });
 
 function erase(id) {
+    undoStack.push({ type: "erase", id: id, object: board[id], objType: board[id].constructor.name });
     delete board[id];
     compileBoard();
     socket.emit('erase', { code: code, id: id });
@@ -376,13 +394,14 @@ if (canEdit == "true") {
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
-                    mouseDown = false;
+                    
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Pen" });
                     isDrawing = false;
                     break;
                 default:
                     break;
             }
+            mouseDown = false;
             redoStack = [];
         }
     }
