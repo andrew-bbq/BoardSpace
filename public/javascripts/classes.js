@@ -128,6 +128,9 @@ class TextObject extends DrawingObject {
         this.foreignText.setAttribute("width", "100%");
         this.foreignText.setAttribute("height", "100%");
         this.textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
+        this.textDiv.addEventListener('input', function(div) {
+            socket.emit('updateText', { code: code, id: id, text: div.target.textContent});
+        });
         this.foreignText.style = "text-align: left; font-size: "+this.size+"; color: "+this.color+";";
         this.textDiv.style = "display: inline-block;";
         this.foreignText.setAttribute("transform", "translate("+lowerLeft.x+" "+lowerLeft.y+")");

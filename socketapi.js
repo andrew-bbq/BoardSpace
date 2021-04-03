@@ -83,6 +83,19 @@ io.on("connection", (socket) => {
         boards[data.code][data.id] = {type:"Text", data: {x: data.x, y: data.y, text: data.text, size: data.size, color:data.color}};
     });
 
+    //  updateText
+    //  Broadcast client updated textObject
+    //      data: 
+    //      {
+    //          code: the code for the board being drawn on
+    //          id: the id of the pen object
+    //          text: the new text in the textObject
+    //      }
+    socket.on("updateText", function(data) {
+        socket.to(data.code).emit('updateText', data);
+        boards[data.code][data.id].data.text = data.text;
+    });
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     socket.on("reAdd", function(data) {

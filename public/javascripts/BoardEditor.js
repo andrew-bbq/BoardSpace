@@ -124,7 +124,6 @@ socket.on('joinData', function (data) {
     let newBoard = {};
     // Get the board objects
     for (id in sentBoard) {
-        console.log(sentBoard[id].type);
         switch (sentBoard[id].type) {
             case "Pen":
                 newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
@@ -132,12 +131,10 @@ socket.on('joinData', function (data) {
                 break;
             case "Text":
                 newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                console.log(sentBoard[id].data.text);
                 newBoard[id].setText(sentBoard[id].data.text);
                 break;
         }
     }
-    console.log(newBoard);
     board = newBoard;
     // Draw the objects
     compileBoard();
@@ -202,6 +199,22 @@ socket.on('drawPen', function (data) {
                 socket.emit("requestNewId", { code: code });
                 requestProcessing = true;
             }
+        }
+    }
+    compileBoard();
+});
+
+
+socket.on('updateText', function (data) {
+    // Make sure that the object being changed isn't being changed by this user rn
+    if (nextId != data.id) {
+        // If this board already has this textObject, then update it accordingly
+        if (board[data.id]) {
+            board[data.id].setText(data.text);
+        }
+        // Otherwise print err message to console
+        else {
+            console.log("attempted to update textObject that is not in board");
         }
     }
     compileBoard();
