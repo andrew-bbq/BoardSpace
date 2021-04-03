@@ -20,12 +20,15 @@ $(".tool").click(function () {
     switch ($(this).val()) {
         case "Pen":
             tool = TOOL_PEN;
+            leaveTextMode();
             break;
         case "Eraser":
             tool = TOOL_ERASER;
+            leaveTextMode();
             break;
         case "Text":
             tool = TOOL_TEXT;
+            enterTextMode();
             break;
         default:
             break;
@@ -419,6 +422,23 @@ if (canEdit == "true") {
                     mouseLeft = false;
                     break;
                 }
+        }
+    }
+}
+
+// 
+function enterTextMode(){
+    for (let id in board) {
+        if (board[id] instanceof TextObject) {
+            board[id].enable();
+        }
+    }
+}
+
+function leaveTextMode(){
+    for (let id in board) {
+        if (board[id] instanceof TextObject) {
+            board[id].disable();
         }
     }
 }

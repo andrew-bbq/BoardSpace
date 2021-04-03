@@ -138,19 +138,22 @@ class TextObject extends DrawingObject {
                 size: this.size, 
                 color: this.color});
         });
-        this.foreignText.style = "text-align: left; font-size: "+this.size+"; border: 3px dashed #58f; color: "+this.color+";";
+        this.foreignText.style = "text-align: left; font-size: "+this.size+"; color: "+this.color+";";
         //this.textDiv.style = "display: inline-block;";
-        this.textDiv.classList.add("nohighlight");
+        this.textDiv.classList.add("unselectable");
+        this.foreignText.classList.add("textEnabled");
         this.foreignText.setAttribute("transform", "translate("+lowerLeft.x+" "+lowerLeft.y+")");
         //svg.appendChild(this.foreignText);
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function(ftext) {
             if (tool == TOOL_TEXT) {
                 mouseOnText = true;
-                // idk why this works
                 // https://stackoverflow.com/questions/2388164/set-focus-on-div-contenteditable-element
                 setTimeout(function() {
-                    ftext.target.firstChild.focus()
+                    try {
+                        ftext.target.firstChild.focus()
+                    } catch(e) {
+                    }
                 }, 0);
             }
         }
@@ -167,5 +170,14 @@ class TextObject extends DrawingObject {
     // Get the path string
     getText(){
         return this.textNode.textContent;
+    }
+
+    enable() {
+        this.textDiv.setAttribute("contentEditable", "true");
+        this.foreignText.classList.add("textEnabled");
+    }
+    disable() {
+        this.textDiv.setAttribute("contentEditable", "false");
+        this.foreignText.classList.remove("textEnabled");
     }
 }
