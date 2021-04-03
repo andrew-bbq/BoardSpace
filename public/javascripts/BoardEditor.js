@@ -159,6 +159,8 @@ socket.on('joinData', function (data) {
         }
     }
     board = newBoard;
+    // ensure user is not in text editing mode when joining
+    leaveTextMode();
     // Draw the objects
     compileBoard();
 });
@@ -447,7 +449,7 @@ if (canEdit == "true") {
     }
 }
 
-// 
+
 function enterTextMode(){
     textModeEnabled = true;
     for (let id in board) {
