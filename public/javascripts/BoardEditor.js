@@ -12,6 +12,7 @@ let mouseLeft; // has the mouse left the board
 let newPoints = []; // the points that have been drawn that need to be emitted to other clients (for pen)
 let requestProcessing = false;
 let mouseOnText = false;
+let isDrawing = false;
 const socket = io();
 const code = document.getElementById("code").value;
 
@@ -322,6 +323,7 @@ if (canEdit == "true") {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
                 socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
+                isDrawing = true;
                 break;
             case TOOL_TEXT:
                 // used method found at:
@@ -373,6 +375,7 @@ if (canEdit == "true") {
                     requestProcessing = true;
                     mouseDown = false;
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Pen" });
+                    isDrawing = false;
                     break;
                 default:
                     break;
@@ -387,11 +390,13 @@ if (canEdit == "true") {
         if (mouseDown) {
             switch (tool) {
                 case TOOL_PEN:
-                    board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
-                    newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-                    socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
-                    // points waiting to be broadcasted have been, so clear it
-                    newPoints = [];
+                    if (isDrawing) {
+                        board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
+                        newPoints.push({ x: mouseX, y: mouseY, type: "line" });
+                        socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
+                        // points waiting to be broadcasted have been, so clear it
+                        newPoints = [];
+                    }
                     break;
             }
         }
@@ -402,7 +407,7 @@ if (canEdit == "true") {
         if (mouseLeft) {
             switch (tool) {
                 case TOOL_PEN:
-                    if (mouseDown) {
+                    if (mouseDown && isDrawing == true) {
                         // get accurate x,y on reenter
                         let box = svg.getBoundingClientRect();
                         mouseX = event.clientX - box.left;
