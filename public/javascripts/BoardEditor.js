@@ -210,6 +210,7 @@ socket.on('updateText', function (data) {
     if (nextId != data.id) {
         // If this board already has this textObject, then update it accordingly
         if (board[data.id]) {
+            board[data.id] = new TextObject(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].setText(data.text);
         }
         // Otherwise print err message to console

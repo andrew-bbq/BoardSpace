@@ -129,10 +129,18 @@ class TextObject extends DrawingObject {
         this.foreignText.setAttribute("height", "100%");
         this.textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
         this.textDiv.addEventListener('input', function(div) {
-            socket.emit('updateText', { code: code, id: id, text: div.target.textContent});
+            socket.emit('updateText', { 
+                code: code, 
+                id: id, 
+                x: lowerLeft.x, 
+                y: lowerLeft.y, 
+                text: div.target.textContent, 
+                size: this.size, 
+                color: this.color});
         });
         this.foreignText.style = "text-align: left; font-size: "+this.size+"; color: "+this.color+";";
         this.textDiv.style = "display: inline-block;";
+        this.textDiv.classList.add("nohighlight");
         this.foreignText.setAttribute("transform", "translate("+lowerLeft.x+" "+lowerLeft.y+")");
         //svg.appendChild(this.foreignText);
         this.foreignText.appendChild(this.textDiv);

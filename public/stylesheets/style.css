@@ -20,4 +20,8 @@ a {
   color: white;
 }
 
+.nohighlight::selection {
+  background-color: transparent;
+}
+
 svg * { pointer-events: all;}
