@@ -66,6 +66,11 @@ io.on("connection", (socket) => {
         boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
     });
 
+    socket.on("reAdd", function(data) {
+        boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
+        socket.to(data.code).emit('reAdd', data);
+    });
+
     socket.on("updateTransform", function(data) {
 
     });
