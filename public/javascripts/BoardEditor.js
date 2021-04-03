@@ -13,6 +13,7 @@ let newPoints = []; // the points that have been drawn that need to be emitted t
 let requestProcessing = false;
 let mouseOnText = false;
 let isDrawing = false;
+let textModeEnabled = false;
 const socket = io();
 const code = document.getElementById("code").value;
 
@@ -29,6 +30,7 @@ $(".tool").click(function () {
         case "Text":
             tool = TOOL_TEXT;
             enterTextMode();
+            compileBoard();
             break;
         default:
             break;
@@ -447,6 +449,7 @@ if (canEdit == "true") {
 
 // 
 function enterTextMode(){
+    textModeEnabled = true;
     for (let id in board) {
         if (board[id] instanceof TextObject) {
             board[id].enable();
@@ -455,6 +458,7 @@ function enterTextMode(){
 }
 
 function leaveTextMode(){
+    textModeEnabled = false;
     for (let id in board) {
         if (board[id] instanceof TextObject) {
             board[id].disable();
@@ -482,9 +486,24 @@ function compileBoard() {
         svg.removeChild(svg.lastChild);
     }
     // add elements
-    for (let id in board) {
-        let element = board[id].getSvg();
-        svg.appendChild(element);
+    if (textModeEnabled) { // draw text on top
+        for (let id in board) {
+            if(!(board[id] instanceof TextObject)) {
+                let element = board[id].getSvg();
+                svg.appendChild(element);
+            }
+        }
+        for (let id in board) {
+            if(board[id] instanceof TextObject) {
+                let element = board[id].getSvg();
+                svg.appendChild(element);
+            }
+        }
+    } else { // draw in order
+        for (let id in board) {
+            let element = board[id].getSvg();
+            svg.appendChild(element);
+        }
     }
     canvas = document.getElementById("drawing-svg");
     canvas.setAttribute('height', BOARD_HEIGHT+"px");
