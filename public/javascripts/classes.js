@@ -125,8 +125,8 @@ class TextObject extends DrawingObject {
         this.textDiv.appendChild(this.textNode);
         this.textDiv.setAttribute("contentEditable", "true");
         this.textDiv.setAttribute("width", "auto");
-        this.foreignText.setAttribute("width", "100%");
-        this.foreignText.setAttribute("height", "100%");
+        this.foreignText.setAttribute("width", 300+"px");
+        this.foreignText.setAttribute("height", 100+"px");
         this.textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
         this.textDiv.addEventListener('input', function(div) {
             socket.emit('updateText', { 
@@ -138,12 +138,22 @@ class TextObject extends DrawingObject {
                 size: this.size, 
                 color: this.color});
         });
-        this.foreignText.style = "text-align: left; font-size: "+this.size+"; color: "+this.color+";";
-        this.textDiv.style = "display: inline-block;";
+        this.foreignText.style = "text-align: left; font-size: "+this.size+"; border: 3px dashed #58f; color: "+this.color+";";
+        //this.textDiv.style = "display: inline-block;";
         this.textDiv.classList.add("nohighlight");
         this.foreignText.setAttribute("transform", "translate("+lowerLeft.x+" "+lowerLeft.y+")");
         //svg.appendChild(this.foreignText);
         this.foreignText.appendChild(this.textDiv);
+        this.foreignText.onmousedown = function(ftext) {
+            if (tool == TOOL_TEXT) {
+                mouseOnText = true;
+                // idk why this works
+                // https://stackoverflow.com/questions/2388164/set-focus-on-div-contenteditable-element
+                setTimeout(function() {
+                    ftext.target.firstChild.focus()
+                }, 0);
+            }
+        }
     }
     getSvg() {
         return this.foreignText;
