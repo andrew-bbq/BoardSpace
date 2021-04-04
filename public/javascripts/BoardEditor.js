@@ -143,7 +143,7 @@ socket.on('clearBoard', function () {
 });
 
 function erase(id) {
-    undoStack.push({ type: "erase", id: id, object: board[id], objType: board[id].constructor.name });
+    undoStack.push({ type: "erase", id: id, object: board[id], objType: board[id].type });
     delete board[id];
     compileBoard();
     socket.emit('erase', { code: code, id: id });
