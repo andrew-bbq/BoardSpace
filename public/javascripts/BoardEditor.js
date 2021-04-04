@@ -219,7 +219,7 @@ if (canEdit) {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-                socket.emit('add', { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color});
+                socket.emit("add", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color});
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -251,7 +251,7 @@ if (canEdit) {
                     setTimeout(function() {
                         board[nextId].foreignText.firstChild.focus(); 
                     },0);
-                    socket.emit('add', { type: TOOL_TYPE, code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
+                    socket.emit("add", { type: TOOL_TYPE, code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
@@ -294,7 +294,7 @@ if (canEdit) {
                     if (isDrawing) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-                        socket.emit('update', { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
+                        socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
                         // points waiting to be broadcasted have been, so clear it
                         newPoints = [];
                     }
@@ -362,7 +362,7 @@ let undoFunc = function () {
                     socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
                  case TOOL_TEXT:
-                    socket.emit('add', { type: TOOL_TEXT, code: code, id: data.id, x:data.object.x, y:data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                    socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x:data.object.x, y:data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
                     break;
             }
             break;
@@ -386,7 +386,7 @@ let undoFunc = function () {
                             socket.emit("add", { code: code, type: TOOL_PEN, id: data.id, content: object.getPath(), size: object.size, color: object.color });
                             break;
                         case TOOL_PEN:
-                            socket.emit('add', { type: TOOL_TEXT, code: code, id: data.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
+                            socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
                             break;
                     }
                 }
@@ -492,7 +492,7 @@ function plotPenPoint() {
     board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
     newPoints.push({ x: mouseX, y: mouseY, type: "line" });
     // Call to the server to broadcast this point addition
-    socket.emit('update', { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
+    socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
     // Draw the board
