@@ -78,7 +78,8 @@ socket.on('joinData', function (data) {
     compileBoard();
 });
 
-socket.on('add', function (data) {
+socket.on("add", function (data) {
+    console.log(data);
     if (nextId == data.id) {
         console.log("Tried to overwrite nextID in add");
         return;
@@ -383,10 +384,10 @@ let undoFunc = function () {
                     board[key] = object;
                     switch (object.type) {
                         case TOOL_PEN:
-                            socket.emit("add", { code: code, type: TOOL_PEN, id: data.id, content: object.getPath(), size: object.size, color: object.color });
+                            socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: object.getPath(), size: object.size, color: object.color });
                             break;
                         case TOOL_PEN:
-                            socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
+                            socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
                             break;
                     }
                 }
@@ -410,7 +411,7 @@ let redoFunc = function () {
                 compileBoard();
                 switch(data.objType){
                     case TOOL_PEN:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
                         socket.emit("add", { code: code, type: data.objType, id: data.id, x:data.object.x, y:data.object.y, content:data.object.getText(), size: data.object.size, color: data.object.color });
