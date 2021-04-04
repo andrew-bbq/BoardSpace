@@ -100,7 +100,7 @@ io.on("connection", (socket) => {
         let code = data.code;
         socket.to(code).emit('clearBoard');
         boards[code] = {};
-    })
+    });
 });
 
 module.exports = socketapi;

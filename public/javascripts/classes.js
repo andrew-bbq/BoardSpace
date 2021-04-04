@@ -3,13 +3,14 @@ const DEF_POS = "0 0 0";
 const DEF_SCALE = "0 0";
 
 class DrawingObject {
-    constructor(id,position, rotation, scale, lowerLeft, upperRight) {
+    constructor(id,position, rotation, scale, lowerLeft, upperRight, type) {
         this.id = id;
         this.position = position;
         this.rotation = rotation;
         this.scale = scale;
         this.lowerLeft = lowerLeft;
         this.upperRight = upperRight;
+        this.type = type;
     }
 
     getSvg() {
@@ -32,7 +33,7 @@ class Pen extends DrawingObject {
     //  upperRight: bounding rectangle upper right corner
     //  size: pen stroke-width
     constructor(id, lowerLeft, upperRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight, TOOL_PEN);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -112,7 +113,7 @@ class Text extends DrawingObject {
     //  size: font size
     //  color: text color
     constructor(id, lowerLeft, upperRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight, TOOL_TEXT);
         this.size = size;
         this.color = color;
         // Set up the SVG path
