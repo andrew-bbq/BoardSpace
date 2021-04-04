@@ -66,7 +66,7 @@ socket.on('joinData', function (data) {
                 }
                 break;
             case "Text":
-                newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id] = new Text(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
                 newBoard[id].setText(sentBoard[id].data.content);
                 break;
         }
@@ -95,7 +95,7 @@ socket.on('add', function (data) {
             }
             break;
         case "Text":
-            board[data.id] = new TextObject(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
+            board[data.id] = new Text(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].setText(data.content);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
@@ -247,7 +247,7 @@ if (canEdit) {
                     */
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
-                    board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color); 
+                    board[nextId] = new Text(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color); 
                     // focus on textbox soon as it is created
                     setTimeout(function() {
                         board[nextId].foreignText.firstChild.focus(); 
@@ -357,12 +357,13 @@ let undoFunc = function () {
             board[data.id] = data.object;
             redoStack.push(undoStack.pop());
             compileBoard();
+            
             switch(data.objType){
                 case "Pen":
                     socket.emit("add", { type: "Pen", code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
                  case "Text":
-                    socket.emit('add', { type: "Text", code: code, id: nextId, x:data.object.x, y:data.object.y, content: object.getText(), size: object.size, color: object.color });
+                    socket.emit('add', { type: "Text", code: code, id: data.id, x:data.object.x, y:data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
                     break;
             }
             break;
@@ -381,10 +382,10 @@ let undoFunc = function () {
                     board[i] = object;
                     switch (object.constructor.name) {
                         case "Pen":
-                            socket.emit("add", { code: code, type: "Pen", id: object.id, content: object.getPath(), size: object.size, color: object.color });
+                            socket.emit("add", { code: code, type: "Pen", id: data.id, content: object.getPath(), size: object.size, color: object.color });
                             break;
                         case "Text":
-                            socket.emit('add', { type: "Text", code: code, id: nextId, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
+                            socket.emit('add', { type: "Text", code: code, id: data.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
                             break;
                     }
                 }
@@ -419,6 +420,7 @@ let redoFunc = function () {
                 delete board[data.id];
                 undoStack.push(redoStack.pop());
                 compileBoard();
+                console.log("redo erase text", data);
                 socket.emit("erase", { code: code, id: data.id });
                 break;
             default:
@@ -431,7 +433,7 @@ $("#redo").click(redoFunc);
 function enterTextMode() {
     textModeEnabled = true;
     for (let id in board) {
-        if (board[id] instanceof TextObject) {
+        if (board[id] instanceof Text) {
             board[id].enable();
         }
     }
@@ -440,7 +442,7 @@ function enterTextMode() {
 function leaveTextMode() {
     textModeEnabled = false;
     for (let id in board) {
-        if (board[id] instanceof TextObject) {
+        if (board[id] instanceof Text) {
             board[id].disable();
         }
     }
@@ -462,13 +464,13 @@ function compileBoard() {
     // add elements
     if (textModeEnabled) { // draw text on top
         for (let id in board) {
-            if (!(board[id] instanceof TextObject)) {
+            if (!(board[id] instanceof Text)) {
                 let element = board[id].getSvg();
                 svg.appendChild(element);
             }
         }
         for (let id in board) {
-            if (board[id] instanceof TextObject) {
+            if (board[id] instanceof Text) {
                 let element = board[id].getSvg();
                 svg.appendChild(element);
             }

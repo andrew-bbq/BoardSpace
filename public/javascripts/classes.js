@@ -104,7 +104,7 @@ class Pen extends DrawingObject {
     }
 }
 
-class TextObject extends DrawingObject {
+class Text extends DrawingObject {
     // TextObject:
     //  id: drawingObject id
     //  lowerLeft: bounding rectangle lower left corner (for select)
