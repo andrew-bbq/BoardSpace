@@ -77,7 +77,7 @@ io.on("connection", (socket) => {
             case "Pen":
                 socket.to(data.code).emit('add', data);
                 // set the board object
-                boards[data.code][data.id] = {type:"Pen", data: {path: null, size: data.size, color:data.color}};
+                boards[data.code][data.id] = {type:"Pen", data: {path: data.path||null, size: data.size, color:data.color}};
                 break;
             case "Text":
                 socket.to(data.code).emit('add', data);

@@ -80,6 +80,7 @@ socket.on('joinData', function (data) {
 
 socket.on('add', function (data) {
     if (nextId == data.id) {
+        console.log("Tried to overwrite nextID in add");
         return;
     }
     switch (data.type) {
@@ -247,6 +248,7 @@ if (canEdit) {
                     let textLowerLeftY = mouseY;
                     board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
                     socket.emit('add', { type: "Text", code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Text" });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
@@ -318,8 +320,6 @@ if (canEdit) {
     }
     document.addEventListener('keydown', function (event) {
         if (event.ctrlKey && event.key === 'z' && tool != TOOL_TEXT) {
-            console.log("hi"
-            )
             undoFunc();
             event.preventDefault();
         }
@@ -356,8 +356,8 @@ let undoFunc = function () {
                 case "Pen":
                     socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
-                case "Text":
-                    socket.emit("add", { code: code, type: data.objType, id: data.id, text:data.object.getText(), size: data.object.size, color: data.object.color });
+                 case "Text":
+                    socket.emit('add', { type: "Text", code: code, id: nextId, x:data.object.x, y:data.object.y, text: object.getText(), size: object.size, color: object.color });
                     break;
             }
             break;
@@ -379,7 +379,7 @@ let undoFunc = function () {
                             socket.emit("add", { code: code, type: "Pen", id: object.id, path: object.getPath(), size: object.size, color: object.color });
                             break;
                         case "Text":
-                            socket.emit("add", { code: code, type: "Text", id: object.id, size: object.size, color: object.color, text: object.getText() });
+                            socket.emit('add', { type: "Text", code: code, id: nextId, x: object.x, y: object.y, text: object.getText(), size: object.size, color: object.color });
                             break;
                     }
                 }
@@ -401,7 +401,14 @@ let redoFunc = function () {
                 board[data.id] = data.object;
                 undoStack.push(redoStack.pop());
                 compileBoard();
-                socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                switch(data.objType){
+                    case "Pen":
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                        break;
+                    case "Text":
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, x:data.object.x, y:data.object.y, text:data.object.getText(), size: data.object.size, color: data.object.color });
+                        break;
+                }
                 break;
             case "erase":
                 delete board[data.id];

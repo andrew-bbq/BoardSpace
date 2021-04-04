@@ -43,19 +43,19 @@ class Pen extends DrawingObject {
         this.path.setAttribute("stroke-linecap", "round");
         this.path.setAttribute("stroke-linejoin", "round");
         this.path.setAttribute("d", "");
-    }
-    getSvg() {
-        let tempId = this.id;
         this.path.onmouseenter = function() {
             if (mouseDown && tool == TOOL_ERASER) {
-                erase(tempId);
+                erase(id);
             }
         };
         this.path.onmousedown = function() {
             if (tool == TOOL_ERASER) {
-                erase(tempId);
+                erase(id);
             }
         }
+    }
+    
+    getSvg() {
         return this.path;
     }
 
@@ -127,6 +127,9 @@ class TextObject extends DrawingObject {
         this.textDiv.setAttribute("width", "auto");
         this.foreignText.setAttribute("width", 300+"px");
         this.foreignText.setAttribute("height", 100+"px");
+        this.x = lowerLeft.x, 
+        this.y = lowerLeft.y, 
+
         this.textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
         this.textDiv.addEventListener('input', function(div) {
             socket.emit('update', { 
@@ -157,7 +160,15 @@ class TextObject extends DrawingObject {
                     }
                 }, 0);
             }
+            if (tool == TOOL_ERASER) {
+                erase(id);
+            }
         }
+        this.foreignText.onmouseenter = function() {
+            if (mouseDown && tool == TOOL_ERASER) {
+                erase(id);
+            }
+        };
     }
     getSvg() {
         return this.foreignText;
