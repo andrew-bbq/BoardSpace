@@ -134,7 +134,7 @@ class Text extends DrawingObject {
         this.textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
         this.textDiv.addEventListener('input', function(div) {
             socket.emit('update', { 
-                type:"Text",
+                type:TOOL_TEXT,
                 code: code, 
                 id: id, 
                 x: lowerLeft.x, 
