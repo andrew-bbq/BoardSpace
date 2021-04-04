@@ -420,7 +420,7 @@ if (canEdit == "true") {
                     if (isDrawing) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-                        socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
+                        socket.emit('updatePen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints , path:board[nextId].getPath()});
                         // points waiting to be broadcasted have been, so clear it
                         newPoints = [];
                     }
