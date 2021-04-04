@@ -23,7 +23,7 @@ io.on("connection", (socket) => {
     //  join
     //  Broadcast to client the board when they join so they can get it
     //    and draw it for the first time
-    socket.on("join", function(data){
+    socket.on("join", function (data) {
         let code = data.code;
         // join room for code
         socket.join(code);
@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
         }
         nextIds[code]++;
         // send board and next id back to user
-        socket.emit("joinData", {nextId: nextIds[code], board: boards[code]});
+        socket.emit("joinData", { nextId: nextIds[code], board: boards[code] });
     });
 
     //  update
@@ -49,17 +49,9 @@ io.on("connection", (socket) => {
     //          path: updated path for server to use
     //          text: the new text in the textObject
     //      }
-    socket.on("update", function(data) {
-        switch(data.type){
-            case "Pen":
-                socket.to(data.code).emit('update', data);
-                boards[data.code][data.id].data.path = data.path;
-                break;
-            case "Text":
-                socket.to(data.code).emit('update', data);
-                boards[data.code][data.id].data.text = data.text;
-                break;
-        }
+    socket.on("update", function (data) {
+        socket.to(data.code).emit('update', data);
+        boards[data.code][data.id].data.content = data.content;
     });
 
     //  add
@@ -72,29 +64,20 @@ io.on("connection", (socket) => {
     //          color: the color of the pen object / the font color
     //          text: the text in the textObject
     //      }
-    socket.on("add", function(data) {
-        switch(data.type){
-            case "Pen":
-                socket.to(data.code).emit('add', data);
-                // set the board object
-                boards[data.code][data.id] = {type:"Pen", data: {path: data.path||null, size: data.size, color:data.color}};
-                break;
-            case "Text":
-                socket.to(data.code).emit('add', data);
-                boards[data.code][data.id] = {type:"Text", data: {x: data.x, y: data.y, text: data.text, size: data.size, color:data.color}};
-                break;
-        }
+    socket.on("add", function (data) {
+        socket.to(data.code).emit('add', data);
+        boards[data.code][data.id] = { type: data.type, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
     });
 
-    socket.on("updateTransform", function(data) {
+    socket.on("updateTransform", function (data) {
 
     });
 
-    socket.on('erase', function(data) {
+    socket.on('erase', function (data) {
         delete boards[data.code][data.id];
         socket.to(data.code).emit('erase', data);
     });
-    
+
     //  requestNewId
     //  Get a new ID for the client to attach to a new drawing object, done
     //    on server side so that each user's drawings increments the nextId.
@@ -102,9 +85,9 @@ io.on("connection", (socket) => {
     //      {
     //          code: the code for the board being drawn on
     //      }
-    socket.on("requestNewId", function(data) {
+    socket.on("requestNewId", function (data) {
         nextIds[data.code]++;
-        socket.emit("newId", {newId: nextIds[data.code]});
+        socket.emit("newId", { newId: nextIds[data.code] });
     });
 
     //  clearBoard
@@ -113,7 +96,7 @@ io.on("connection", (socket) => {
     //      {
     //          code: the code for the board being cleared
     //      }
-    socket.on("clearBoard", function(data){
+    socket.on("clearBoard", function (data) {
         let code = data.code;
         socket.to(code).emit('clearBoard');
         boards[code] = {};

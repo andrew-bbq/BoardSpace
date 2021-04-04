@@ -61,13 +61,13 @@ socket.on('joinData', function (data) {
         switch (sentBoard[id].type) {
             case "Pen":
                 newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                if (sentBoard[id].data.path) {
-                    newBoard[id].setPath(sentBoard[id].data.path);
+                if (sentBoard[id].data.content) {
+                    newBoard[id].setPath(sentBoard[id].data.content);
                 }
                 break;
             case "Text":
                 newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                newBoard[id].setText(sentBoard[id].data.text);
+                newBoard[id].setText(sentBoard[id].data.content);
                 break;
         }
     }
@@ -86,8 +86,8 @@ socket.on('add', function (data) {
     switch (data.type) {
         case "Pen":
             board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
-            if (data.path) {
-                board[data.id].setPath(data.path);
+            if (data.content) {
+                board[data.id].setPath(data.content);
             }
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
@@ -96,7 +96,7 @@ socket.on('add', function (data) {
             break;
         case "Text":
             board[data.id] = new TextObject(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
-            board[data.id].setText(data.text);
+            board[data.id].setText(data.content);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
                 requestProcessing = true;
@@ -124,7 +124,8 @@ socket.on('update', function (data) {
         case "Text":
             // If this board already has this textObject, then update it accordingly
             if (board[data.id]) {
-                board[data.id].setText(data.text);
+                console.log(data);
+                board[data.id].setText(data.content);
             }
             // Otherwise print err message to console
             else {
@@ -219,7 +220,7 @@ if (canEdit) {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-                socket.emit('add', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color });
+                socket.emit('add', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color});
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -247,7 +248,7 @@ if (canEdit) {
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
                     board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
-                    socket.emit('add', { type: "Text", code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
+                    socket.emit('add', { type: "Text", code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Text" });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
@@ -290,7 +291,7 @@ if (canEdit) {
                     if (isDrawing) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-                        socket.emit('update', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, path: board[nextId].getPath() });
+                        socket.emit('update', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
                         // points waiting to be broadcasted have been, so clear it
                         newPoints = [];
                     }
@@ -354,10 +355,10 @@ let undoFunc = function () {
             compileBoard();
             switch(data.objType){
                 case "Pen":
-                    socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                    socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
                  case "Text":
-                    socket.emit('add', { type: "Text", code: code, id: nextId, x:data.object.x, y:data.object.y, text: object.getText(), size: object.size, color: object.color });
+                    socket.emit('add', { type: "Text", code: code, id: nextId, x:data.object.x, y:data.object.y, content: object.getText(), size: object.size, color: object.color });
                     break;
             }
             break;
@@ -376,10 +377,10 @@ let undoFunc = function () {
                     board[i] = object;
                     switch (object.constructor.name) {
                         case "Pen":
-                            socket.emit("add", { code: code, type: "Pen", id: object.id, path: object.getPath(), size: object.size, color: object.color });
+                            socket.emit("add", { code: code, type: "Pen", id: object.id, content: object.getPath(), size: object.size, color: object.color });
                             break;
                         case "Text":
-                            socket.emit('add', { type: "Text", code: code, id: nextId, x: object.x, y: object.y, text: object.getText(), size: object.size, color: object.color });
+                            socket.emit('add', { type: "Text", code: code, id: nextId, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
                             break;
                     }
                 }
@@ -403,10 +404,10 @@ let redoFunc = function () {
                 compileBoard();
                 switch(data.objType){
                     case "Pen":
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                         break;
                     case "Text":
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, x:data.object.x, y:data.object.y, text:data.object.getText(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, x:data.object.x, y:data.object.y, content:data.object.getText(), size: data.object.size, color: data.object.color });
                         break;
                 }
                 break;
@@ -485,7 +486,7 @@ function plotPenPoint() {
     board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
     newPoints.push({ x: mouseX, y: mouseY, type: "line" });
     // Call to the server to broadcast this point addition
-    socket.emit('update', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, path: board[nextId].getPath() });
+    socket.emit('update', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
     // Draw the board
