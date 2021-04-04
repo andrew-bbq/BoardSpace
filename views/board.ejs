@@ -29,6 +29,7 @@
     <% } %>
 
       <div id="drawing-goes-here"><svg id="drawing-svg"></svg></div>
+      <% if (canEdit) { %>
       <div>
         <input class="tool" type="button" value="Pen" id="selected">
         <input class="tool" type="button" value="Eraser">
@@ -38,6 +39,7 @@
         <input id="undo" type="button" value="Undo">
         <input id="redo" type="button" value="Redo">
       </div>
+      <% } %>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <div hidden id="canEdit" canEdit=<%=canEdit %>

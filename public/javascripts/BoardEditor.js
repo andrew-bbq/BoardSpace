@@ -39,95 +39,6 @@ $(".tool").click(function () {
     $(this).attr("id", "selected");
 });
 
-let undoFunc = function () {
-    if (undoStack.length != 0) {
-        data = undoStack[undoStack.length - 1];
-        switch (data.type) {
-            case "add":
-                // find position in board array?
-                delete board[data.id];
-                redoStack.push(undoStack.pop());
-                compileBoard();
-                socket.emit("erase", { code: code, id: data.id });
-                break;
-            case "erase":
-                board[data.id] = data.object;
-                redoStack.push(undoStack.pop());
-                compileBoard();
-                socket.emit("reAdd", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color});
-                break;
-            case "clear":
-                // Add back all of the things deleted with the clear
-                let clear = undoStack.pop();
-                redoStack.push(clear);
-                let clearboard = clear.board;
-                for (let i=0; i < clearboard.length; i++){
-                    if(clearboard[i]){
-                        if(board[i]){
-                            console.log("tried to write over an object with undo clear");
-                            continue
-                        }
-                        let object = clearboard[i];
-                        board[i] =object;
-                        switch(object.constructor.name){
-                            case "Pen":
-                                socket.emit("reAdd", { code: code, type:"Pen", id: object.id, path: object.getPath(), size: object.size, color: object.color});
-                                break;
-                            case "Text":
-                                socket.emit("reAdd", { code: code, type:"Text", id: object.id, size: object.size, color: object.color, text: object.getText()});
-                                break;
-                        }
-                    }
-                }
-                compileBoard();
-                break;
-            default:
-                break;
-        }
-    }
-}
-$("#undo").click(undoFunc);
-
-let redoFunc = function () {
-    if (redoStack.length != 0) {
-        data = redoStack[redoStack.length - 1];
-        switch (data.type) {
-            case "add":
-                // find position in board array?
-                board[data.id] = data.object;
-                undoStack.push(redoStack.pop());
-                compileBoard();
-                socket.emit("reAdd", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
-                break;
-            case "erase":
-                delete board[data.id];
-                undoStack.push(redoStack.pop());
-                compileBoard();
-                socket.emit("erase", { code: code, id: data.id });
-                break;
-            default:
-                break;
-        }
-    }
-}
-$("#redo").click(redoFunc);
-
-
-document.addEventListener('keydown', function (event) {
-    if (event.ctrlKey && event.key === 'z' && tool != TOOL_TEXT) {
-        undoFunc();
-        event.preventDefault();
-    }
-
-});
-document.addEventListener('keydown', function (event) {
-    // Not tool text so that undo/redo works inside the text box and doesnt effect other things at same time
-    if (event.ctrlKey && event.key === 'y'&& tool != TOOL_TEXT) { 
-        redoFunc();
-        event.preventDefault();
-    }
-});
-
 socket.emit('join', { code: code });
 
 /**
@@ -150,7 +61,7 @@ socket.on('joinData', function (data) {
         switch (sentBoard[id].type) {
             case "Pen":
                 newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                if(sentBoard[id].data.path){
+                if (sentBoard[id].data.path) {
                     newBoard[id].setPath(sentBoard[id].data.path);
                 }
                 break;
@@ -167,102 +78,57 @@ socket.on('joinData', function (data) {
     compileBoard();
 });
 
-/**
- * drawPen
- * Receive server broadcast for drawing with the pen
- *   data: 
- *   {
- *       code: the code for the board being drawn on
- *       id: the id of the pen object
- *       size: the stroke-width of the pen object
- *       color: the color of the pen object
- *       newPoints: the points being added to the Pen object's path
- *   }
- */
-socket.on('updatePen', function (data) {
-    // Make sure that the object being changed isn't being changed by this user rn
-    if (nextId != data.id) {
-        // If this board already has this Pen object, then update it accordingly
-        if (board[data.id]) {
-            board[data.id].updatePathData(data.newPoints);
-        }
+socket.on('add', function (data) {
+    if (nextId == data.id) {
+        return;
     }
-    compileBoard();
-});
-
-socket.on('addPen', function(data){
-    if (nextId != data.id) {
-        board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
-        board[data.id].updatePathData(data.newPoints);
-        if (!mouseDown) {
-            socket.emit("requestNewId", { code: code });
-            requestProcessing = true;
-        }
-    }
-});
-
-/**
- * addText
- * Receive server broadcast for new textObject
- *   data: 
- *   {
- *       code: the code for the board being drawn on
- *       id: the id of the pen object
- *       size: the font-size
- *       color: the color of the text
- *       text: the text in the textObject
- *   }
- */
- socket.on('addText', function (data) {
-    // Make sure that the object being changed isn't being changed by this user rn
-    if (nextId != data.id) {
-        // If this board already has this textObject, then update it accordingly
-        if (board[data.id]) {
-            board[data.id].setText(data.text);
-        }
-        // Otherwise add this textObject to the board
-        else {
+    switch (data.type) {
+        case "Pen":
+            board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+            if (data.path) {
+                board[data.id].setPath(data.path);
+            }
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
+            }
+            break;
+        case "Text":
             board[data.id] = new TextObject(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
             board[data.id].setText(data.text);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
                 requestProcessing = true;
             }
-        }
+            break;
     }
     compileBoard();
 });
 
-
-socket.on('updateText', function (data) {
+socket.on('update', function (data) {
     // Make sure that the object being changed isn't being changed by this user rn
-    if (nextId != data.id) {
-        // If this board already has this textObject, then update it accordingly
-        if (board[data.id]) {
-            board[data.id].setText(data.text);
-        }
-        // Otherwise print err message to console
-        else {
-            console.log("attempted to update textObject that is not in board");
-        }
+    if (nextId == data.id) {
+        return;
     }
-    compileBoard();
-});
-
-socket.on('reAdd', function (data) {
-    if(board[data.id]){
-        console.log("tried to write over an object with readd");
-    }  
     switch (data.type) {
-        case "Pen": 
-        board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
-            board[data.id].setPath(data.path);
+        case "Pen":
+            // If this board already has this Pen object, then update it accordingly
+            if (board[data.id]) {
+                board[data.id].updatePathData(data.newPoints);
+            }
+            else {
+                console.log("attempted to update Pen that is not in board");
+            }
             break;
         case "Text":
-            board[data.id] = new TextObject(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
-            board[data.id].setText(data.text);
-            break;
-        default:
+            // If this board already has this textObject, then update it accordingly
+            if (board[data.id]) {
+                board[data.id].setText(data.text);
+            }
+            // Otherwise print err message to console
+            else {
+                console.log("attempted to update textObject that is not in board");
+            }
             break;
     }
     compileBoard();
@@ -302,17 +168,19 @@ socket.on('newId', function (data) {
 // get svg
 let svg = document.getElementById("drawing-svg");
 // does the user have editing access
-let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
+let canEdit = document.getElementById("canEdit").getAttribute("canEdit") == "true";
 
-// Copy code button for just for testing 
-document.getElementById('Copy').addEventListener('click', copy);
-async function copy() {
-    let text = document.querySelector("#bcode").innerHTML;
-    await navigator.clipboard.writeText(text);
+document.getElementById('Copy').onclick = copy;
+function copy() {
+    navigator.clipboard.writeText(code).then(function() {
+      }, function() {
+        /* clipboard write failed */
+        console.log("failed to copy to clipboard")
+      });
 }
 
 // If the user has edit access, define the board editing listeners
-if (canEdit == "true") {
+if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
     let colorer = document.getElementById("color");
@@ -350,14 +218,14 @@ if (canEdit == "true") {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-                socket.emit('addPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color});
+                socket.emit('add', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color });
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
                 // used method found at:
                 // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
                 // http://jsfiddle.net/brx3xm59/
-                
+
                 if (!mouseOnText) {
                     /**
                     let foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
@@ -377,8 +245,8 @@ if (canEdit == "true") {
                     */
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
-                    board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize+20, color);
-                    socket.emit('addText', { code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color});
+                    board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
+                    socket.emit('add', { type: "Text", code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
@@ -420,7 +288,7 @@ if (canEdit == "true") {
                     if (isDrawing) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-                        socket.emit('updatePen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints , path:board[nextId].getPath()});
+                        socket.emit('update', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, path: board[nextId].getPath() });
                         // points waiting to be broadcasted have been, so clear it
                         newPoints = [];
                     }
@@ -445,13 +313,110 @@ if (canEdit == "true") {
                     }
                     mouseLeft = false;
                     break;
-                }
+            }
         }
     }
+    document.addEventListener('keydown', function (event) {
+        if (event.ctrlKey && event.key === 'z' && tool != TOOL_TEXT) {
+            console.log("hi"
+            )
+            undoFunc();
+            event.preventDefault();
+        }
+
+    });
+    document.addEventListener('keydown', function (event) {
+        // Not tool text so that undo/redo works inside the text box and doesnt effect other things at same time
+        if (event.ctrlKey && event.key === 'y' && tool != TOOL_TEXT) {
+            redoFunc();
+            event.preventDefault();
+        }
+    });
 }
 
 
-function enterTextMode(){
+let undoFunc = function () {
+    if (undoStack.length == 0) {
+        return;
+    }
+    data = undoStack[undoStack.length - 1];
+    switch (data.type) {
+        case "add":
+            // find position in board array?
+            delete board[data.id];
+            redoStack.push(undoStack.pop());
+            compileBoard();
+            socket.emit("erase", { code: code, id: data.id });
+            break;
+        case "erase":
+            board[data.id] = data.object;
+            redoStack.push(undoStack.pop());
+            compileBoard();
+            switch(data.objType){
+                case "Pen":
+                    socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                    break;
+                case "Text":
+                    socket.emit("add", { code: code, type: data.objType, id: data.id, text:data.object.getText(), size: data.object.size, color: data.object.color });
+                    break;
+            }
+            break;
+        case "clear":
+            // Add back all of the things deleted with the clear
+            let clear = undoStack.pop();
+            redoStack.push(clear);
+            let clearboard = clear.board;
+            for (let i = 0; i < clearboard.length; i++) {
+                if (clearboard[i]) {
+                    if (board[i]) {
+                        console.log("tried to write over an object with undo clear");
+                        continue
+                    }
+                    let object = clearboard[i];
+                    board[i] = object;
+                    switch (object.constructor.name) {
+                        case "Pen":
+                            socket.emit("add", { code: code, type: "Pen", id: object.id, path: object.getPath(), size: object.size, color: object.color });
+                            break;
+                        case "Text":
+                            socket.emit("add", { code: code, type: "Text", id: object.id, size: object.size, color: object.color, text: object.getText() });
+                            break;
+                    }
+                }
+            }
+            compileBoard();
+            break;
+        default:
+            break;
+    }
+}
+$("#undo").click(undoFunc);
+
+let redoFunc = function () {
+    if (redoStack.length != 0) {
+        data = redoStack[redoStack.length - 1];
+        switch (data.type) {
+            case "add":
+                // find position in board array?
+                board[data.id] = data.object;
+                undoStack.push(redoStack.pop());
+                compileBoard();
+                socket.emit("add", { code: code, type: data.objType, id: data.id, path: data.object.getPath(), size: data.object.size, color: data.object.color });
+                break;
+            case "erase":
+                delete board[data.id];
+                undoStack.push(redoStack.pop());
+                compileBoard();
+                socket.emit("erase", { code: code, id: data.id });
+                break;
+            default:
+                break;
+        }
+    }
+}
+$("#redo").click(redoFunc);
+
+function enterTextMode() {
     textModeEnabled = true;
     for (let id in board) {
         if (board[id] instanceof TextObject) {
@@ -460,7 +425,7 @@ function enterTextMode(){
     }
 }
 
-function leaveTextMode(){
+function leaveTextMode() {
     textModeEnabled = false;
     for (let id in board) {
         if (board[id] instanceof TextObject) {
@@ -471,15 +436,9 @@ function leaveTextMode(){
 
 // Clear the board
 function clearBoard() {
-    // let oldboard;
-    // for (let i = 0; i < board.length; i++) {
-    //     if(board[i]){
-    //         oldboard
-    //     }
-    // }
-    undoStack.push({ type: "clear", board:board });
+    undoStack.push({ type: "clear", board: board });
     board = [];
-    compileBoard();  
+    compileBoard();
 }
 
 // Draw the drawingObjects on the board
@@ -491,13 +450,13 @@ function compileBoard() {
     // add elements
     if (textModeEnabled) { // draw text on top
         for (let id in board) {
-            if(!(board[id] instanceof TextObject)) {
+            if (!(board[id] instanceof TextObject)) {
                 let element = board[id].getSvg();
                 svg.appendChild(element);
             }
         }
         for (let id in board) {
-            if(board[id] instanceof TextObject) {
+            if (board[id] instanceof TextObject) {
                 let element = board[id].getSvg();
                 svg.appendChild(element);
             }
@@ -509,8 +468,8 @@ function compileBoard() {
         }
     }
     canvas = document.getElementById("drawing-svg");
-    canvas.setAttribute('height', BOARD_HEIGHT+"px");
-    canvas.setAttribute('width', BOARD_WIDTH+"px");
+    canvas.setAttribute('height', BOARD_HEIGHT + "px");
+    canvas.setAttribute('width', BOARD_WIDTH + "px");
 }
 
 // Add a point to currently being drawn line
@@ -519,7 +478,7 @@ function plotPenPoint() {
     board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
     newPoints.push({ x: mouseX, y: mouseY, type: "line" });
     // Call to the server to broadcast this point addition
-    socket.emit('updatePen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, path:board[nextId].getPath() });
+    socket.emit('update', { type: "Pen", code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, path: board[nextId].getPath() });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
     // Draw the board
@@ -533,7 +492,7 @@ function animate(timestamp) {
     poll -= deltaTime;
     if (poll < 0) {
         // if tool == pen /freeform drawing and mouse is held down, add a new point to the line
-        if(tool == TOOL_PEN && mouseDown && !mouseLeft && board[nextId]){
+        if (tool == TOOL_PEN && mouseDown && !mouseLeft && board[nextId]) {
             plotPenPoint();
         }
         poll = POLL_RATE;
