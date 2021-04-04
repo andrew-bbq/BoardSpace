@@ -226,15 +226,16 @@ class Rectangle extends DrawingObject {
     updateShape(mouseX, mouseY) {
         let width = mouseX-this.x;
         let height = mouseY-this.y;
-        // if(width < 0 && height < 0){
-        //     this.rect.setAttribute("transform", "scale(200)");
-        // }
-        // else if(width <0){
-        //     this.rect.setAttribute("transform", "scale(-1,1)");
-        // }
-        // else if(height <0){
-        //     this.rect.setAttribute("transform", "scale(1,-1))");
-        // }
+        if (mouseX < this.x) {
+            this.rect.setAttribute("x", mouseX);
+        } else {
+            this.rect.setAttribute("x", this.x);
+        }
+        if (mouseY < this.y){
+            this.rect.setAttribute("y", mouseY);
+        } else {
+            this.rect.setAttribute("y", this.y);
+        }
         this.rect.setAttribute("width",Math.abs(width));
         this.rect.setAttribute("height", Math.abs(height));
     }
