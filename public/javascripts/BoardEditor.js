@@ -79,7 +79,6 @@ socket.on('joinData', function (data) {
 });
 
 socket.on("add", function (data) {
-    console.log(data);
     if (nextId == data.id) {
         console.log("Tried to overwrite nextID in add");
         return;
@@ -252,7 +251,7 @@ if (canEdit) {
                     setTimeout(function() {
                         board[nextId].foreignText.firstChild.focus(); 
                     },0);
-                    socket.emit("add", { type: TOOL_TYPE, code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
+                    socket.emit("add", { type: TOOL_TEXT, code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
@@ -380,7 +379,6 @@ let undoFunc = function () {
                         continue;
                     }
                     let object = clearboard[key];
-                    console.log(object);
                     board[key] = object;
                     switch (object.type) {
                         case TOOL_PEN:

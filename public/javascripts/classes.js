@@ -136,7 +136,7 @@ class Text extends DrawingObject {
             socket.emit('update', { 
                 type:TOOL_TEXT,
                 code: code, 
-                id: id, 
+                id: id,
                 x: lowerLeft.x, 
                 y: lowerLeft.y, 
                 content: div.target.textContent, 
