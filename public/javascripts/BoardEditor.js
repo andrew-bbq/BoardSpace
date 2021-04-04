@@ -247,6 +247,12 @@ if (canEdit) {
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
                     board[nextId] = new TextObject(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
+                    
+                    // focus on textbox soon as it is created
+                    setTimeout(function() {
+                        board[nextId].foreignText.firstChild.focus(); 
+                    },0);
+
                     socket.emit('add', { type: "Text", code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, text: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Text" });
                     // get a new id for nextId
