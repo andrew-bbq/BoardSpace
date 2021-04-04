@@ -124,7 +124,6 @@ socket.on('update', function (data) {
         case "Text":
             // If this board already has this textObject, then update it accordingly
             if (board[data.id]) {
-                console.log(data);
                 board[data.id].setText(data.content);
             }
             // Otherwise print err message to console
@@ -420,7 +419,6 @@ let redoFunc = function () {
                 delete board[data.id];
                 undoStack.push(redoStack.pop());
                 compileBoard();
-                console.log("redo erase text", data);
                 socket.emit("erase", { code: code, id: data.id });
                 break;
             default:
