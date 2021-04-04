@@ -150,7 +150,9 @@ socket.on('joinData', function (data) {
         switch (sentBoard[id].type) {
             case "Pen":
                 newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                newBoard[id].setPath(sentBoard[id].data.path);
+                if(sentBoard[id].data.path){
+                    newBoard[id].setPath(sentBoard[id].data.path);
+                }
                 break;
             case "Text":
                 newBoard[id] = new TextObject(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
@@ -177,24 +179,26 @@ socket.on('joinData', function (data) {
  *       newPoints: the points being added to the Pen object's path
  *   }
  */
-socket.on('drawPen', function (data) {
+socket.on('updatePen', function (data) {
     // Make sure that the object being changed isn't being changed by this user rn
     if (nextId != data.id) {
         // If this board already has this Pen object, then update it accordingly
         if (board[data.id]) {
             board[data.id].updatePathData(data.newPoints);
         }
-        // Otherwise add this Pen object to the board
-        else {
-            board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
-            board[data.id].updatePathData(data.newPoints);
-            if (!mouseDown) {
-                socket.emit("requestNewId", { code: code });
-                requestProcessing = true;
-            }
-        }
     }
     compileBoard();
+});
+
+socket.on('addPen', function(data){
+    if (nextId != data.id) {
+        board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
+        board[data.id].updatePathData(data.newPoints);
+        if (!mouseDown) {
+            socket.emit("requestNewId", { code: code });
+            requestProcessing = true;
+        }
+    }
 });
 
 /**
@@ -346,7 +350,7 @@ if (canEdit == "true") {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-                socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: [] });
+                socket.emit('addPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color});
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -393,11 +397,9 @@ if (canEdit == "true") {
             // if pen is selected tool
             switch (tool) {
                 case TOOL_PEN:
-                    socket.emit("addPen", { code: code, id: nextId, path: board[nextId].getPath(), size: board[nextId].size, color: board[nextId].color });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
-                    
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: "Pen" });
                     isDrawing = false;
                     break;
@@ -517,7 +519,7 @@ function plotPenPoint() {
     board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
     newPoints.push({ x: mouseX, y: mouseY, type: "line" });
     // Call to the server to broadcast this point addition
-    socket.emit('drawPen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints });
+    socket.emit('updatePen', { code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, path:board[nextId].getPath() });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
     // Draw the board

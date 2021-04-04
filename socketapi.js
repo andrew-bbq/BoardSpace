@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
         socket.emit("joinData", {nextId: nextIds[code], board: boards[code]});
     });
 
-    //  drawPen
+    //  updatePen
     //  Broadcast client drawing with the pen
     //      data: 
     //      {
@@ -46,24 +46,26 @@ io.on("connection", (socket) => {
     //          size: the stroke-width of the pen object
     //          color: the color of the pen object
     //          newPoints: the points being added to the Pen object's path
+    //          path: updated path for server to use
     //      }
-    socket.on("drawPen", function(data) {
-        socket.to(data.code).emit('drawPen', data);
+    socket.on("updatePen", function(data) {
+        socket.to(data.code).emit('updatePen', {id:data.id,size:data.size,color:data.color,newPoints: data.newPoints});
+        boards[data.code][data.id].data.path = data.path;
     });
 
     //  addPen
-    //  Add a finished Pen object to the saved board for sending to client on join
+    //  Add a new Pen object to the saved board for sending to client on join
     //      data: 
     //      {
     //          code: the code for the board being drawn on
     //          id: the id of the pen object
     //          size: the stroke-width of the pen object
     //          color: the color of the pen object
-    //          path: the path of the pen object (to make the SVG)
     //      }
     socket.on("addPen", function(data) {
+        socket.to(data.code).emit('addPen', data);
         // set the board object
-        boards[data.code][data.id] = {type:"Pen", data: {path: data.path, size: data.size, color:data.color}};
+        boards[data.code][data.id] = {type:"Pen", data: {path: null, size: data.size, color:data.color}};
     });
 
 /////////////////////////////////////////////TEXTOBJECT////////////////////////////////////////////////////////////////
