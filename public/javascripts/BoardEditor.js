@@ -32,6 +32,11 @@ $(".tool").click(function () {
             enterTextMode();
             compileBoard();
             break;
+        case "Rectangle":
+            tool = TOOL_RECTANGLE;
+            leaveTextMode();
+            compileBoard();
+            break;
         default:
             break;
     }
@@ -173,11 +178,11 @@ let canEdit = document.getElementById("canEdit").getAttribute("canEdit") == "tru
 
 document.getElementById('Copy').onclick = copy;
 function copy() {
-    navigator.clipboard.writeText(code).then(function() {
-      }, function() {
+    navigator.clipboard.writeText(code).then(function () {
+    }, function () {
         /* clipboard write failed */
         console.log("failed to copy to clipboard")
-      });
+    });
 }
 
 // If the user has edit access, define the board editing listeners
@@ -219,7 +224,7 @@ if (canEdit) {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-                socket.emit("add", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color});
+                socket.emit("add", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color });
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -246,11 +251,11 @@ if (canEdit) {
                     */
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
-                    board[nextId] = new Text(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color); 
+                    board[nextId] = new Text(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
                     // focus on textbox soon as it is created
-                    setTimeout(function() {
-                        board[nextId].foreignText.firstChild.focus(); 
-                    },0);
+                    setTimeout(function () {
+                        board[nextId].foreignText.firstChild.focus();
+                    }, 0);
                     socket.emit("add", { type: TOOL_TEXT, code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
                     // get a new id for nextId
@@ -263,6 +268,12 @@ if (canEdit) {
                     compileBoard();
                     break;
                 }
+            case TOOL_RECTANGLE:
+                board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: 0, y: 0 }, color);
+                // Emit here
+                // // get a new id for nextId
+                compileBoard();
+                break;
         }
     }
 
@@ -276,6 +287,10 @@ if (canEdit) {
                     requestProcessing = true;
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     isDrawing = false;
+                    break;
+                case TOOL_RECTANGLE:
+                    socket.emit("requestNewId", { code: code });
+                    requestProcessing = true;
                     break;
                 default:
                     break;
@@ -356,13 +371,13 @@ let undoFunc = function () {
             board[data.id] = data.object;
             redoStack.push(undoStack.pop());
             compileBoard();
-            
-            switch(data.objType){
+
+            switch (data.objType) {
                 case TOOL_PEN:
                     socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
-                 case TOOL_TEXT:
-                    socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x:data.object.x, y:data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                case TOOL_TEXT:
+                    socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
                     break;
             }
             break;
@@ -407,12 +422,12 @@ let redoFunc = function () {
                 board[data.id] = data.object;
                 undoStack.push(redoStack.pop());
                 compileBoard();
-                switch(data.objType){
+                switch (data.objType) {
                     case TOOL_PEN:
                         socket.emit("add", { code: code, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, x:data.object.x, y:data.object.y, content:data.object.getText(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
                         break;
                 }
                 break;
@@ -494,8 +509,11 @@ function plotPenPoint() {
     socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
-    // Draw the board
-    compileBoard();
+}
+
+function updateRect(){
+    board[nextId].updateShape(mouseX, mouseY);
+    // EMIT HERE
 }
 
 // For drawing listener polling
@@ -505,10 +523,20 @@ function animate(timestamp) {
     poll -= deltaTime;
     if (poll < 0) {
         // if tool == pen /freeform drawing and mouse is held down, add a new point to the line
-        if (tool == TOOL_PEN && mouseDown && !mouseLeft && board[nextId]) {
-            plotPenPoint();
-        }
+        switch(tool){
+            case TOOL_PEN:
+                if(mouseDown && !mouseLeft && board[nextId]){
+                    plotPenPoint();
+                }   
+                break;  
+            case TOOL_RECTANGLE:
+                if(mouseDown){
+                    updateRect();
+                }
+                break; 
+        }  
         poll = POLL_RATE;
+        compileBoard();
     }
     window.requestAnimationFrame(animate);
 }

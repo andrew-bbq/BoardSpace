@@ -194,3 +194,52 @@ class Text extends DrawingObject {
         this.foreignText.classList.remove("textEnabled");
     }
 }
+
+class Rectangle extends DrawingObject {
+    constructor(id, upperLeft, lowerRight, color) {
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
+        this.color = color;
+        this.x = upperLeft.x;
+        this.y = upperLeft.y;
+        this.width = 100;
+        this.height = 100;
+        // Set up the SVG path
+        this.rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        this.rect.setAttribute("fill", color);
+        this.rect.setAttribute("x", this.x);
+        this.rect.setAttribute("y", this.y);
+        this.rect.setAttribute("width", this.width);
+        this.rect.setAttribute("height", this.height);
+        this.rect.onmouseenter = function() {
+            if (mouseDown && tool == TOOL_ERASER) {
+                erase(id);
+            }
+        };
+        this.rect.onmousedown = function() {
+            if (tool == TOOL_ERASER) {
+                erase(id);
+            }
+        }
+    }
+
+    // Add points to the path
+    updateShape(mouseX, mouseY) {
+        let width = mouseX-this.x;
+        let height = mouseY-this.y;
+        // if(width < 0 && height < 0){
+        //     this.rect.setAttribute("transform", "scale(200)");
+        // }
+        // else if(width <0){
+        //     this.rect.setAttribute("transform", "scale(-1,1)");
+        // }
+        // else if(height <0){
+        //     this.rect.setAttribute("transform", "scale(1,-1))");
+        // }
+        this.rect.setAttribute("width",Math.abs(width));
+        this.rect.setAttribute("height", Math.abs(height));
+    }
+
+    getSvg() {
+        return this.rect;
+    }
+}
