@@ -138,7 +138,7 @@ class TextObject extends DrawingObject {
                 id: id, 
                 x: lowerLeft.x, 
                 y: lowerLeft.y, 
-                text: div.target.textContent, 
+                content: div.target.textContent, 
                 size: this.size, 
                 color: this.color});
         });

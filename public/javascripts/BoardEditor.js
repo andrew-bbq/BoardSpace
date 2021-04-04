@@ -355,7 +355,7 @@ let undoFunc = function () {
             compileBoard();
             switch(data.objType){
                 case "Pen":
-                    socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
+                    socket.emit("add", { type: "Pen", code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
                  case "Text":
                     socket.emit('add', { type: "Text", code: code, id: nextId, x:data.object.x, y:data.object.y, content: object.getText(), size: object.size, color: object.color });
