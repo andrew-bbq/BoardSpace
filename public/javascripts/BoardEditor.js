@@ -75,7 +75,6 @@ socket.on('joinData', function (data) {
                 newBoard[id].setText(sentBoard[id].data.content);
                 break;
             case TOOL_RECTANGLE:
-                console.log(sentBoard[id]);
                 newBoard[id] = new Rectangle(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
                 newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
                 break;
@@ -220,6 +219,7 @@ if (canEdit) {
 
     // Clear the board
     clearer.onclick = function () {
+        undoStack.push({ type: "clear", board: board });
         clearBoard();
         socket.emit("requestNewId", { code: code });
         requestProcessing = true;
@@ -396,7 +396,6 @@ let undoFunc = function () {
             board[data.id] = data.object;
             redoStack.push(undoStack.pop());
             compileBoard();
-
             switch (data.objType) {
                 case TOOL_PEN:
                     socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
@@ -455,7 +454,7 @@ let redoFunc = function () {
                 compileBoard();
                 switch (data.objType) {
                     case TOOL_PEN:
-                        socket.emit("add", { code: code, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
                         socket.emit("add", { code: code, type: data.objType, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
@@ -471,6 +470,22 @@ let redoFunc = function () {
                 compileBoard();
                 socket.emit("erase", { code: code, id: data.id });
                 break;
+            case "clear":
+                let clear = redoStack.pop();
+                let clearboard = clear.board;
+                undoStack.push(clear);
+                for (let i = 0; i < Object.keys(clearboard).length; i++) {
+                    let key = Object.keys(clearboard)[i];
+                    if (clearboard[key]) {
+                        if (!board[key]) {
+                            console.log("tried to clear an object that doesnt exist");
+                            continue;
+                        }
+                        delete board[key]
+                        socket.emit("erase", {code: code, id: clearboard[key].id});  
+                    }
+                }
+                compileBoard();
             default:
                 break;
         }
@@ -498,7 +513,6 @@ function leaveTextMode() {
 
 // Clear the board
 function clearBoard() {
-    undoStack.push({ type: "clear", board: board });
     board = {};
     compileBoard();
 }
