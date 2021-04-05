@@ -3,13 +3,13 @@ const DEF_POS = "0 0 0";
 const DEF_SCALE = "0 0";
 
 class DrawingObject {
-    constructor(id,position, rotation, scale, lowerLeft, upperRight, type) {
+    constructor(id,position, rotation, scale, upperLeft, lowerRight, type) {
         this.id = id;
         this.position = position;
         this.rotation = rotation;
         this.scale = scale;
-        this.lowerLeft = lowerLeft;
-        this.upperRight = upperRight;
+        this.upperLeft = upperLeft;
+        this.lowerRight = lowerRight;
         this.type = type;
     }
 
@@ -201,8 +201,8 @@ class Rectangle extends DrawingObject {
         this.color = color;
         this.x = upperLeft.x;
         this.y = upperLeft.y;
-        this.width = 100;
-        this.height = 100;
+        this.width = 0;
+        this.height = 0;
         // Set up the SVG path
         this.rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         this.rect.setAttribute("fill", color);
@@ -224,20 +224,42 @@ class Rectangle extends DrawingObject {
 
     // Add points to the path
     updateShape(mouseX, mouseY) {
-        let width = mouseX-this.x;
-        let height = mouseY-this.y;
+        this.width = mouseX-this.x;
+        this.height = mouseY-this.y;
         if (mouseX < this.x) {
             this.rect.setAttribute("x", mouseX);
+            this.upperLeft.x = mouseX;
+            this.lowerRight.x = this.x;
         } else {
             this.rect.setAttribute("x", this.x);
+            this.upperLeft.x = this.x;
+            this.lowerRight.x = mouseX;
         }
         if (mouseY < this.y){
             this.rect.setAttribute("y", mouseY);
+            this.upperLeft.y = mouseY;
+            this.lowerRight.y = this.y;
         } else {
             this.rect.setAttribute("y", this.y);
+            this.upperLeft.y = this.y;
+            this.lowerRight.y = mouseY;
         }
-        this.rect.setAttribute("width",Math.abs(width));
-        this.rect.setAttribute("height", Math.abs(height));
+        this.rect.setAttribute("width",Math.abs(this.width));
+        this.rect.setAttribute("height", Math.abs(this.height));
+    }
+
+    updateFromCorners(upperLeft, lowerRight) {
+        this.upperLeft = upperLeft;
+        this.lowerRight = lowerRight;
+        this.x = upperLeft.x;
+        this.y = upperLeft.y;
+        this.width = lowerRight.x - upperLeft.x;
+        this.height = lowerRight.y - upperLeft.y;
+        this.rect.setAttribute("x", this.x);
+        this.rect.setAttribute("y", this.y);
+        this.rect.setAttribute("width",Math.abs(this.width));
+        this.rect.setAttribute("height", Math.abs(this.height));
+    
     }
 
     getSvg() {

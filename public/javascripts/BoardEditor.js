@@ -74,6 +74,11 @@ socket.on('joinData', function (data) {
                 newBoard[id] = new Text(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
                 newBoard[id].setText(sentBoard[id].data.content);
                 break;
+            case TOOL_RECTANGLE:
+                console.log(sentBoard[id]);
+                newBoard[id] = new Rectangle(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
+                newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
+                break;
         }
     }
     board = newBoard;
@@ -107,11 +112,19 @@ socket.on("add", function (data) {
                 requestProcessing = true;
             }
             break;
+        case TOOL_RECTANGLE:
+            board[data.id] = new Rectangle(data.id, data.content.upperLeft, data.content.lowerRight, data.color);
+            board[data.id].updateFromCorners(data.content.upperLeft, data.content.lowerRight);
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
+            }
+            break;
     }
     compileBoard();
 });
 
-socket.on('update', function (data) {
+socket.on("update", function (data) {
     // Make sure that the object being changed isn't being changed by this user rn
     if (nextId == data.id) {
         return;
@@ -134,6 +147,16 @@ socket.on('update', function (data) {
             // Otherwise print err message to console
             else {
                 console.log("attempted to update textObject that is not in board");
+            }
+            break;
+        case TOOL_RECTANGLE:
+            // If this board already has this rectangle, then update it accordingly
+            if (board[data.id]) {
+                board[data.id].updateFromCorners(data.content.upperLeft, data.content.lowerRight);
+            }
+            // Otherwise print err message to console
+            else {
+                console.log("attempted to update rectangle that is not in board");
             }
             break;
     }
@@ -269,8 +292,9 @@ if (canEdit) {
                     break;
                 }
             case TOOL_RECTANGLE:
-                board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: 0, y: 0 }, color);
+                board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color);
                 // Emit here
+                socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: {upperLeft: {x: mouseX, y: mouseY}, lowerRight: {x: mouseX, y: mouseY}}});
                 // // get a new id for nextId
                 compileBoard();
                 break;
@@ -283,12 +307,13 @@ if (canEdit) {
             switch (tool) {
                 case TOOL_PEN:
                     // get a new id for nextId
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
-                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     isDrawing = false;
                     break;
                 case TOOL_RECTANGLE:
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_RECTANGLE});
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
                     break;
@@ -514,6 +539,7 @@ function plotPenPoint() {
 function updateRect(){
     board[nextId].updateShape(mouseX, mouseY);
     // EMIT HERE
+    socket.emit("update", {type: TOOL_RECTANGLE, code: code, id: nextId, color: board[nextId].color, content: {upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight}});
 }
 
 // For drawing listener polling
