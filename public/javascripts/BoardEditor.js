@@ -5,7 +5,7 @@ let mouseY = 0;
 let lastTimestamp;
 let board = {}; // list of drawingObjects
 let penSize = 3;
-let color = 'black';
+let color = "#000000";
 let undoStack = [];
 let redoStack = [];
 let mouseLeft; // has the mouse left the board
@@ -16,7 +16,7 @@ let isDrawing = false;
 let textModeEnabled = false;
 const socket = io();
 const code = document.getElementById("code").value;
-
+let colorer;
 $(".tool").click(function () {
     switch ($(this).val()) {
         case "Pen":
@@ -35,7 +35,10 @@ $(".tool").click(function () {
         case "Rectangle":
             tool = TOOL_RECTANGLE;
             leaveTextMode();
-            compileBoard();
+            break;
+        case "Eyedrop":
+            tool = TOOL_EYEDROP;
+            leaveTextMode();
             break;
         default:
             break;
@@ -211,7 +214,7 @@ function copy() {
 if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
-    let colorer = document.getElementById("color");
+    colorer = document.getElementById("color");
     // Change the color
     colorer.oninput = function () {
         color = colorer.value;
@@ -254,24 +257,7 @@ if (canEdit) {
                 // used method found at:
                 // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
                 // http://jsfiddle.net/brx3xm59/
-
                 if (!mouseOnText) {
-                    /**
-                    let foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-                    let textDiv = document.createElement("div");
-                    let textNode = document.createTextNode("Click to edit");
-                    textDiv.appendChild(textNode);
-                    textDiv.setAttribute("contentEditable", "true");
-                    textDiv.setAttribute("width", "auto");
-                    foreignText.setAttribute("width", "100%");
-                    foreignText.setAttribute("height", "100%");
-                    textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
-                    foreignText.style = "text-align: left; font-size: 24; color: purple";
-                    textDiv.style = "display: inline-block;";
-                    foreignText.setAttribute("transform", "translate("+mouseX+" "+mouseY+")");
-                    svg.appendChild(foreignText);
-                    foreignText.appendChild(textDiv);
-                    */
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
                     board[nextId] = new Text(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
@@ -297,6 +283,12 @@ if (canEdit) {
                 socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: {upperLeft: {x: mouseX, y: mouseY}, lowerRight: {x: mouseX, y: mouseY}}});
                 // // get a new id for nextId
                 compileBoard();
+                break;
+            case TOOL_EYEDROP:
+                // Click whiteboard get the background color which is white
+                setColor("#FFFFFF")
+                break;
+            default:
                 break;
         }
     }
@@ -357,9 +349,9 @@ if (canEdit) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "jump" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "jump" });
                     }
-                    mouseLeft = false;
-                    break;
+                    break;    
             }
+            mouseLeft = false;
         }
     }
     document.addEventListener('keydown', function (event) {
@@ -509,6 +501,11 @@ function leaveTextMode() {
             board[id].disable();
         }
     }
+}
+
+function setColor(newColor){
+    color = newColor;
+    colorer.value = newColor;
 }
 
 // Clear the board
