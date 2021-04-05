@@ -9,7 +9,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
-<body>
+<body style = "user-select :none">
   <a href="/">Home</a>
   <input type="hidden" id="code" value="<%=boardcode%>" />
   <h1>Board <span id="bcode">
@@ -25,6 +25,7 @@
   <% if (canEdit) { %>
     Pen size<input type="range" min="1" max="25" value="4" id="pensize">
     Pen color <input type="color" id="color">
+    Opacity <input type="range" min="25" max="255" value="255" id="opacity">
     <button id="clearboard">clear board </button>
     <% } %>
 

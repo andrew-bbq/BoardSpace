@@ -5,7 +5,7 @@ let mouseY = 0;
 let lastTimestamp;
 let board = {}; // list of drawingObjects
 let penSize = 3;
-let color = "#000000";
+let color = "#000000ff";
 let undoStack = [];
 let redoStack = [];
 let mouseLeft; // has the mouse left the board
@@ -17,6 +17,8 @@ let textModeEnabled = false;
 const socket = io();
 const code = document.getElementById("code").value;
 let colorer;
+let opaciter;
+let opacity = "FF";
 $(".tool").click(function () {
     switch ($(this).val()) {
         case "Pen":
@@ -214,10 +216,17 @@ function copy() {
 if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
+    opaciter = document.getElementById("opacity");
     colorer = document.getElementById("color");
+
+    opaciter.oninput = function(){
+        opacity = (+opaciter.value).toString(16);
+        color = color.slice(0,7) + opacity;
+    }
+
     // Change the color
     colorer.oninput = function () {
-        color = colorer.value;
+        color = colorer.value + opacity;
     }
 
     // Clear the board
@@ -286,7 +295,7 @@ if (canEdit) {
                 break;
             case TOOL_EYEDROP:
                 // Click whiteboard get the background color which is white
-                setColor("#FFFFFF")
+                setColor("#FFFFFFFF");
                 break;
             default:
                 break;
@@ -505,7 +514,8 @@ function leaveTextMode() {
 
 function setColor(newColor){
     color = newColor;
-    colorer.value = newColor;
+    opaciter.value = parseInt( '0x' + newColor.slice(7,9),16);
+    colorer.value = newColor.slice(0,7);
 }
 
 // Clear the board
