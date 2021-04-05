@@ -404,6 +404,9 @@ let undoFunc = function () {
                 case TOOL_TEXT:
                     socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
                     break;
+                case TOOL_RECTANGLE:
+                    socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
+                    break;
             }
             break;
         case "clear":
@@ -424,8 +427,11 @@ let undoFunc = function () {
                         case TOOL_PEN:
                             socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: object.getPath(), size: object.size, color: object.color });
                             break;
-                        case TOOL_PEN:
+                        case TOOL_TEXT:
                             socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
+                            break;
+                        case TOOL_RECTANGLE:
+                            socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
                             break;
                     }
                 }
@@ -453,6 +459,9 @@ let redoFunc = function () {
                         break;
                     case TOOL_TEXT:
                         socket.emit("add", { code: code, type: data.objType, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                        break;
+                    case TOOL_RECTANGLE:
+                        socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                         break;
                 }
                 break;
