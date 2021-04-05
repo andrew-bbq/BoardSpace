@@ -528,15 +528,16 @@ function animate(timestamp) {
                 if(mouseDown && !mouseLeft && board[nextId]){
                     plotPenPoint();
                 }   
+                compileBoard();
                 break;  
             case TOOL_RECTANGLE:
                 if(mouseDown){
                     updateRect();
                 }
+                compileBoard();
                 break; 
         }  
         poll = POLL_RATE;
-        compileBoard();
     }
     window.requestAnimationFrame(animate);
 }
