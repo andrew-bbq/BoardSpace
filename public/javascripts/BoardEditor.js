@@ -5,7 +5,7 @@ let mouseY = 0;
 let lastTimestamp;
 let board = {}; // list of drawingObjects
 let penSize = 3;
-let color = 'black';
+let color = "#000000";
 let undoStack = [];
 let redoStack = [];
 let mouseLeft; // has the mouse left the board
@@ -16,7 +16,7 @@ let isDrawing = false;
 let textModeEnabled = false;
 const socket = io();
 const code = document.getElementById("code").value;
-
+let colorer;
 $(".tool").click(function () {
     switch ($(this).val()) {
         case "Pen":
@@ -35,7 +35,10 @@ $(".tool").click(function () {
         case "Rectangle":
             tool = TOOL_RECTANGLE;
             leaveTextMode();
-            compileBoard();
+            break;
+        case "Eyedrop":
+            tool = TOOL_EYEDROP;
+            leaveTextMode();
             break;
         default:
             break;
@@ -74,6 +77,10 @@ socket.on('joinData', function (data) {
                 newBoard[id] = new Text(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
                 newBoard[id].setText(sentBoard[id].data.content);
                 break;
+            case TOOL_RECTANGLE:
+                newBoard[id] = new Rectangle(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
+                newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
+                break;
         }
     }
     board = newBoard;
@@ -107,11 +114,19 @@ socket.on("add", function (data) {
                 requestProcessing = true;
             }
             break;
+        case TOOL_RECTANGLE:
+            board[data.id] = new Rectangle(data.id, data.content.upperLeft, data.content.lowerRight, data.color);
+            board[data.id].updateFromCorners(data.content.upperLeft, data.content.lowerRight);
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
+            }
+            break;
     }
     compileBoard();
 });
 
-socket.on('update', function (data) {
+socket.on("update", function (data) {
     // Make sure that the object being changed isn't being changed by this user rn
     if (nextId == data.id) {
         return;
@@ -134,6 +149,16 @@ socket.on('update', function (data) {
             // Otherwise print err message to console
             else {
                 console.log("attempted to update textObject that is not in board");
+            }
+            break;
+        case TOOL_RECTANGLE:
+            // If this board already has this rectangle, then update it accordingly
+            if (board[data.id]) {
+                board[data.id].updateFromCorners(data.content.upperLeft, data.content.lowerRight);
+            }
+            // Otherwise print err message to console
+            else {
+                console.log("attempted to update rectangle that is not in board");
             }
             break;
     }
@@ -189,7 +214,7 @@ function copy() {
 if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
-    let colorer = document.getElementById("color");
+    colorer = document.getElementById("color");
     // Change the color
     colorer.oninput = function () {
         color = colorer.value;
@@ -197,6 +222,7 @@ if (canEdit) {
 
     // Clear the board
     clearer.onclick = function () {
+        undoStack.push({ type: "clear", board: board });
         clearBoard();
         socket.emit("requestNewId", { code: code });
         requestProcessing = true;
@@ -231,24 +257,7 @@ if (canEdit) {
                 // used method found at:
                 // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
                 // http://jsfiddle.net/brx3xm59/
-
                 if (!mouseOnText) {
-                    /**
-                    let foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-                    let textDiv = document.createElement("div");
-                    let textNode = document.createTextNode("Click to edit");
-                    textDiv.appendChild(textNode);
-                    textDiv.setAttribute("contentEditable", "true");
-                    textDiv.setAttribute("width", "auto");
-                    foreignText.setAttribute("width", "100%");
-                    foreignText.setAttribute("height", "100%");
-                    textDiv.addEventListener("mousedown", function(){mouseOnText = true;}, false);
-                    foreignText.style = "text-align: left; font-size: 24; color: purple";
-                    textDiv.style = "display: inline-block;";
-                    foreignText.setAttribute("transform", "translate("+mouseX+" "+mouseY+")");
-                    svg.appendChild(foreignText);
-                    foreignText.appendChild(textDiv);
-                    */
                     let textLowerLeftX = mouseX;
                     let textLowerLeftY = mouseY;
                     board[nextId] = new Text(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
@@ -269,10 +278,17 @@ if (canEdit) {
                     break;
                 }
             case TOOL_RECTANGLE:
-                board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: 0, y: 0 }, color);
+                board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color);
                 // Emit here
+                socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: {upperLeft: {x: mouseX, y: mouseY}, lowerRight: {x: mouseX, y: mouseY}}});
                 // // get a new id for nextId
                 compileBoard();
+                break;
+            case TOOL_EYEDROP:
+                // Click whiteboard get the background color which is white
+                setColor("#FFFFFF")
+                break;
+            default:
                 break;
         }
     }
@@ -283,12 +299,13 @@ if (canEdit) {
             switch (tool) {
                 case TOOL_PEN:
                     // get a new id for nextId
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
-                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_PEN });
                     isDrawing = false;
                     break;
                 case TOOL_RECTANGLE:
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_RECTANGLE});
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
                     break;
@@ -332,9 +349,9 @@ if (canEdit) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "jump" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "jump" });
                     }
-                    mouseLeft = false;
-                    break;
+                    break;    
             }
+            mouseLeft = false;
         }
     }
     document.addEventListener('keydown', function (event) {
@@ -371,13 +388,15 @@ let undoFunc = function () {
             board[data.id] = data.object;
             redoStack.push(undoStack.pop());
             compileBoard();
-
             switch (data.objType) {
                 case TOOL_PEN:
                     socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_TEXT:
                     socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                    break;
+                case TOOL_RECTANGLE:
+                    socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                     break;
             }
             break;
@@ -399,8 +418,11 @@ let undoFunc = function () {
                         case TOOL_PEN:
                             socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: object.getPath(), size: object.size, color: object.color });
                             break;
-                        case TOOL_PEN:
+                        case TOOL_TEXT:
                             socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
+                            break;
+                        case TOOL_RECTANGLE:
+                            socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
                             break;
                     }
                 }
@@ -424,10 +446,13 @@ let redoFunc = function () {
                 compileBoard();
                 switch (data.objType) {
                     case TOOL_PEN:
-                        socket.emit("add", { code: code, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
                         socket.emit("add", { code: code, type: data.objType, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                        break;
+                    case TOOL_RECTANGLE:
+                        socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                         break;
                 }
                 break;
@@ -437,6 +462,22 @@ let redoFunc = function () {
                 compileBoard();
                 socket.emit("erase", { code: code, id: data.id });
                 break;
+            case "clear":
+                let clear = redoStack.pop();
+                let clearboard = clear.board;
+                undoStack.push(clear);
+                for (let i = 0; i < Object.keys(clearboard).length; i++) {
+                    let key = Object.keys(clearboard)[i];
+                    if (clearboard[key]) {
+                        if (!board[key]) {
+                            console.log("tried to clear an object that doesnt exist");
+                            continue;
+                        }
+                        delete board[key]
+                        socket.emit("erase", {code: code, id: clearboard[key].id});  
+                    }
+                }
+                compileBoard();
             default:
                 break;
         }
@@ -462,9 +503,13 @@ function leaveTextMode() {
     }
 }
 
+function setColor(newColor){
+    color = newColor;
+    colorer.value = newColor;
+}
+
 // Clear the board
 function clearBoard() {
-    undoStack.push({ type: "clear", board: board });
     board = {};
     compileBoard();
 }
@@ -514,6 +559,7 @@ function plotPenPoint() {
 function updateRect(){
     board[nextId].updateShape(mouseX, mouseY);
     // EMIT HERE
+    socket.emit("update", {type: TOOL_RECTANGLE, code: code, id: nextId, color: board[nextId].color, content: {upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight}});
 }
 
 // For drawing listener polling
