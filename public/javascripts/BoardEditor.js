@@ -70,13 +70,13 @@ socket.on('joinData', function (data) {
     for (id in sentBoard) {
         switch (sentBoard[id].type) {
             case TOOL_PEN:
-                newBoard[id] = new Pen(id, { x: 0, y: 0 }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                if (sentBoard[id].data.content) {
-                    newBoard[id].setPath(sentBoard[id].data.content);
+                newBoard[id] = new Pen(id, data.content.upperLeft, data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
+                if (sentBoard[id].data.content && sentBoard[id].data.content.path) {
+                    newBoard[id].setPath(sentBoard[id].data.content.path);
                 }
                 break;
             case TOOL_TEXT:
-                newBoard[id] = new Text(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: 0, y: 0 }, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id] = new Text(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: -1, y: -1 }, sentBoard[id].data.size, sentBoard[id].data.color);
                 newBoard[id].setText(sentBoard[id].data.content);
                 break;
             case TOOL_RECTANGLE:
@@ -99,9 +99,9 @@ socket.on("add", function (data) {
     }
     switch (data.type) {
         case TOOL_PEN:
-            board[data.id] = new Pen(data.id, { x: 0, y: 0 }, { x: 0, y: 0 }, data.size, data.color);
-            if (data.content) {
-                board[data.id].setPath(data.content);
+            board[data.id] = new Pen(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
+            if (data.content && data.content.path) {
+                board[data.id].setPath(data.content.path);
             }
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
@@ -125,6 +125,7 @@ socket.on("add", function (data) {
             }
             break;
     }
+    console.log(board);
     compileBoard();
 });
 
@@ -138,6 +139,8 @@ socket.on("update", function (data) {
             // If this board already has this Pen object, then update it accordingly
             if (board[data.id]) {
                 board[data.id].updatePathData(data.newPoints);
+                board[data.id].upperLeft = data.content.upperLeft;
+                board[data.id].lowerRight = data.content.lowerRight;
             }
             else {
                 console.log("attempted to update Pen that is not in board");
@@ -258,8 +261,8 @@ if (canEdit) {
         // if pen is selected tool
         switch (tool) {
             case TOOL_PEN:
-                board[nextId] = new Pen(nextId, { x: 0, y: 0 }, { x: 0, y: 0 }, penSize, color);
-                socket.emit("add", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color });
+                board[nextId] = new Pen(nextId, { x: -1, y: -1 }, { x: -1, y: -1 }, penSize, color);
+                socket.emit("add", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: {upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: ""} });
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -335,7 +338,7 @@ if (canEdit) {
                     if (isDrawing) {
                         board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
                         newPoints.push({ x: mouseX, y: mouseY, type: "line" });
-                        socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
+                        socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: {path: board[nextId].getPath(), upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight} });
                         // points waiting to be broadcasted have been, so clear it
                         newPoints = [];
                     }
@@ -399,7 +402,7 @@ let undoFunc = function () {
             compileBoard();
             switch (data.objType) {
                 case TOOL_PEN:
-                    socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
+                    socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_TEXT:
                     socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
@@ -425,7 +428,7 @@ let undoFunc = function () {
                     board[key] = object;
                     switch (object.type) {
                         case TOOL_PEN:
-                            socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: object.getPath(), size: object.size, color: object.color });
+                            socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
                             break;
                         case TOOL_TEXT:
                             socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
@@ -455,7 +458,7 @@ let redoFunc = function () {
                 compileBoard();
                 switch (data.objType) {
                     case TOOL_PEN:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: data.object.getPath(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
                         socket.emit("add", { code: code, type: data.objType, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
@@ -561,7 +564,7 @@ function plotPenPoint() {
     board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
     newPoints.push({ x: mouseX, y: mouseY, type: "line" });
     // Call to the server to broadcast this point addition
-    socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: board[nextId].getPath() });
+    socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: {path: board[nextId].getPath(), upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight} });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
 }

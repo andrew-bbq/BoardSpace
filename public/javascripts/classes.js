@@ -19,9 +19,9 @@ class DrawingObject {
 }
 
 // class FreeFormDrawingObject extends DrawingObject { 
-//     constructor(id, shapeData, position, rotation, scale, lowerLeft, upperRight, path){
+//     constructor(id, shapeData, position, rotation, scale, upperLeft, lowerRight, path){
 //         this.path = path;
-//         super(id, shapeData, position, rotation, scale, lowerLeft, upperRight);
+//         super(id, shapeData, position, rotation, scale, upperLeft, lowerRight);
 //     }
 
 // }
@@ -29,11 +29,11 @@ class DrawingObject {
 class Pen extends DrawingObject {
     // Pen:
     //  id: drawingObject id
-    //  lowerLeft: bounding rectangle lower left corner (for select)
-    //  upperRight: bounding rectangle upper right corner
+    //  upperLeft: bounding rectangle upper left corner (for select)
+    //  lowerRight: bounding rectangle lower right corner
     //  size: pen stroke-width
-    constructor(id, lowerLeft, upperRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight, TOOL_PEN);
+    constructor(id, upperLeft, lowerRight, size, color) {
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -104,6 +104,9 @@ class Pen extends DrawingObject {
                 pathString = "M " + newpoints[0].x + " " + newpoints[0].y;
             }
         }
+        // update upperleft and lowerright points
+        this.updateCornerPoints(newpoints[0]);
+
         // add the rest of the new points if there are any
         for (let i = 1; i < newpoints.length; i++) {
             if (newpoints[i].type == "line") {
@@ -112,21 +115,38 @@ class Pen extends DrawingObject {
             else if (newpoints[i].type == "jump") {
                 pathString += " M " + newpoints[i].x + " " + newpoints[i].y;
             }
+            this.updateCornerPoints(newpoints[i]);
         }
         // update the path string for this pen
         this.path.setAttribute("d", this.path.getAttribute("d") + pathString);
+    }
+
+    // update corners given a new point
+    updateCornerPoints(point) {
+        if (point.x < this.upperLeft.x || this.upperLeft.x == -1) {
+            this.upperLeft.x = point.x;
+        }
+        if (point.y < this.upperLeft.y || this.upperLeft.y == -1) {
+            this.upperLeft.y = point.y;
+        }
+        if (point.x > this.lowerRight.x || this.lowerRight.x == -1) {
+            this.lowerRight.x = point.x;
+        }
+        if (point.y > this.lowerRight.y || this.lowerRight.y == -1) {
+            this.lowerRight.y = point.y;
+        }
     }
 }
 
 class Text extends DrawingObject {
     // TextObject:
     //  id: drawingObject id
-    //  lowerLeft: bounding rectangle lower left corner (for select)
-    //  upperRight: bounding rectangle upper right corner
+    //  upperLeft: bounding rectangle upper left corner (for select)
+    //  lowerRight: bounding rectangle lower right corner
     //  size: font size
     //  color: text color
-    constructor(id, lowerLeft, upperRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, lowerLeft, upperRight, TOOL_TEXT);
+    constructor(id, upperLeft, lowerRight, size, color) {
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -141,8 +161,8 @@ class Text extends DrawingObject {
         this.textDiv.setAttribute("width", "auto");
         this.foreignText.setAttribute("width", 300 + "px");
         this.foreignText.setAttribute("height", 100 + "px");
-        this.x = lowerLeft.x,
-            this.y = lowerLeft.y,
+        this.x = upperLeft.x,
+            this.y = upperLeft.y,
 
             this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
         this.textDiv.addEventListener('input', function (div) {
@@ -150,8 +170,8 @@ class Text extends DrawingObject {
                 type: TOOL_TEXT,
                 code: code,
                 id: id,
-                x: lowerLeft.x,
-                y: lowerLeft.y,
+                x: upperLeft.x,
+                y: upperLeft.y,
                 content: div.target.textContent,
                 size: this.size,
                 color: this.color
@@ -161,7 +181,7 @@ class Text extends DrawingObject {
         //this.textDiv.style = "display: inline-block;";
         this.textDiv.classList.add("unselectable");
         this.foreignText.classList.add("textEnabled");
-        this.foreignText.setAttribute("transform", "translate(" + lowerLeft.x + " " + lowerLeft.y + ")");
+        this.foreignText.setAttribute("transform", "translate(" + upperLeft.x + " " + upperLeft.y + ")");
         //svg.appendChild(this.foreignText);
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
