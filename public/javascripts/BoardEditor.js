@@ -76,8 +76,8 @@ socket.on('joinData', function (data) {
                 }
                 break;
             case TOOL_TEXT:
-                newBoard[id] = new Text(id, { x: sentBoard[id].data.x, y: sentBoard[id].data.y }, { x: -1, y: -1 }, sentBoard[id].data.size, sentBoard[id].data.color);
-                newBoard[id].setText(sentBoard[id].data.content);
+                newBoard[id] = new Text(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id].setText(sentBoard[id].data.content.text);
                 break;
             case TOOL_RECTANGLE:
                 newBoard[id] = new Rectangle(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
@@ -109,8 +109,8 @@ socket.on("add", function (data) {
             }
             break;
         case TOOL_TEXT:
-            board[data.id] = new Text(data.id, { x: data.x, y: data.y }, { x: 0, y: 0 }, data.size, data.color);
-            board[data.id].setText(data.content);
+            board[data.id] = new Text(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
+            board[data.id].setText(data.content.text);
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
                 requestProcessing = true;
@@ -148,7 +148,7 @@ socket.on("update", function (data) {
         case TOOL_TEXT:
             // If this board already has this textObject, then update it accordingly
             if (board[data.id]) {
-                board[data.id].setText(data.content);
+                board[data.id].setText(data.content.text);
             }
             // Otherwise print err message to console
             else {
@@ -269,14 +269,14 @@ if (canEdit) {
                 // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
                 // http://jsfiddle.net/brx3xm59/
                 if (!mouseOnText) {
-                    let textLowerLeftX = mouseX;
-                    let textLowerLeftY = mouseY;
-                    board[nextId] = new Text(nextId, { x: textLowerLeftX, y: textLowerLeftY }, { x: 0, y: 0 }, penSize + 20, color);
+                    let textUpperLeft = {x: mouseX, y: mouseY};
+                    let textLowerRight = {x: (mouseX + DEFAULT_TEXT_WIDTH), y: (mouseY + DEFAULT_TEXT_HEIGHT)};
+                    board[nextId] = new Text(nextId, textUpperLeft, textLowerRight, penSize + 20, color);
                     // focus on textbox soon as it is created
                     setTimeout(function () {
                         board[nextId].foreignText.firstChild.focus();
                     }, 0);
-                    socket.emit("add", { type: TOOL_TEXT, code: code, id: nextId, x: textLowerLeftX, y: textLowerLeftY, content: board[nextId].getText(), size: board[nextId].size, color: board[nextId].color });
+                    socket.emit("add", { type: TOOL_TEXT, code: code, id: nextId, content: {text: board[nextId].getText(), upperLeft: textUpperLeft, lowerRight: textLowerRight}, size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
@@ -404,7 +404,7 @@ let undoFunc = function () {
                     socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_TEXT:
-                    socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                    socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, content: {text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_RECTANGLE:
                     socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
@@ -430,7 +430,7 @@ let undoFunc = function () {
                             socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
                             break;
                         case TOOL_TEXT:
-                            socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, x: object.x, y: object.y, content: object.getText(), size: object.size, color: object.color });
+                            socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, content: {text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
                             break;
                         case TOOL_RECTANGLE:
                             socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
@@ -460,7 +460,7 @@ let redoFunc = function () {
                         socket.emit("add", { code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, x: data.object.x, y: data.object.y, content: data.object.getText(), size: data.object.size, color: data.object.color });
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: {text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_RECTANGLE:
                         socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});

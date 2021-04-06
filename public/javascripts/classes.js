@@ -149,6 +149,8 @@ class Text extends DrawingObject {
         super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
         this.size = size;
         this.color = color;
+        this.height = this.lowerRight.y-this.upperLeft.y;
+        this.width = this.lowerRight.x-this.upperLeft.x;
         // Set up the SVG path
         // used method found at:
         // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
@@ -158,28 +160,38 @@ class Text extends DrawingObject {
         this.textDiv.innerHTML = "Click to edit";
         this.textDiv.setAttribute("contentEditable", "true");
         this.textDiv.setAttribute("width", "auto");
-        this.foreignText.setAttribute("width", 300 + "px");
-        this.foreignText.setAttribute("height", 100 + "px");
-        this.x = upperLeft.x,
-            this.y = upperLeft.y,
+        this.foreignText.setAttribute("height", this.height + "px");
+        this.foreignText.setAttribute("width", this.width + "px");
 
-            this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
+        this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
+
+        // define variables for updating
+        let updateUpperLeft = this.upperLeft;
+        let updateLowerRight = this.lowerRight;
+        let updateSize = this.color;
+        let updateColor = this.color;
+
+        // emits when textbox is edited
         this.textDiv.addEventListener('input', function (div) {
             socket.emit('update', {
                 type: TOOL_TEXT,
                 code: code,
                 id: id,
-                x: upperLeft.x,
-                y: upperLeft.y,
-                content: div.target.innerHTML,
-                size: this.size,
-                color: this.color
+                content: {
+                    text: div.target.innerHTML, 
+                    upperLeft: updateUpperLeft,
+                    lowerRight: updateLowerRight 
+                },
+                size: updateSize,
+                color: updateColor
             });
         });
+
+
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("unselectable");
         this.foreignText.classList.add("textEnabled");
-        this.foreignText.setAttribute("transform", "translate(" + upperLeft.x + " " + upperLeft.y + ")");
+        this.foreignText.setAttribute("transform", "translate(" + this.upperLeft.x + " " + this.upperLeft.y + ")");
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
             if (tool == TOOL_TEXT) {
@@ -187,7 +199,7 @@ class Text extends DrawingObject {
                 // https://stackoverflow.com/questions/2388164/set-focus-on-div-contenteditable-element
                 setTimeout(function () {
                     try {
-                        ftext.target.firstChild.focus()
+                        ftext.target.firstChild.focus();
                     } catch (e) {
                     }
                 }, 0);
