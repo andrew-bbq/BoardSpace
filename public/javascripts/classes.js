@@ -88,7 +88,7 @@ class Pen extends DrawingObject {
             }
             // jump/moveTo (for the mouse leaving board and coming back case)
             else if (newpoints[0].type == "jump") {
-                pathString = "M " + newpoints[0].x + " " + newpoints[0].y;
+                pathString = " M " + newpoints[0].x + " " + newpoints[0].y;
             }
         }
         // add the rest of the new points if there are any
