@@ -48,12 +48,12 @@ describe('Test Pen Class', () => {
             expect(pen.id).to.equal(1);
         });
 
-        it('should have correct lowerLeft', () =>{
-            expect(pen.lowerLeft).to.deep.equal({ x: 0, y: 0 });
+        it('should have correct upperLeft', () =>{
+            expect(pen.upperLeft).to.deep.equal({ x: 0, y: 0 });
         });
 
-        it('should have correct upperRight', () =>{
-            expect(pen.upperRight).to.deep.equal({ x: 0, y: 0 });
+        it('should have correct lowerRight', () =>{
+            expect(pen.lowerRight).to.deep.equal({ x: 0, y: 0 });
         });
 
         it('should have correct size', () =>{
