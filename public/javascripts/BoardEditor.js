@@ -125,7 +125,6 @@ socket.on("add", function (data) {
             }
             break;
     }
-    console.log(board);
     compileBoard();
 });
 
