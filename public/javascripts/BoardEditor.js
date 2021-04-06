@@ -70,7 +70,7 @@ socket.on('joinData', function (data) {
     for (id in sentBoard) {
         switch (sentBoard[id].type) {
             case TOOL_PEN:
-                newBoard[id] = new Pen(id, data.content.upperLeft, data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id] = new Pen(id, sentBoard[id].data.content.upperleft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
                 if (sentBoard[id].data.content && sentBoard[id].data.content.path) {
                     newBoard[id].setPath(sentBoard[id].data.content.path);
                 }
