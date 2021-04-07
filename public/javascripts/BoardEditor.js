@@ -514,6 +514,7 @@ function leaveTextMode() {
 
 function setColor(newColor){
     color = newColor;
+    opacity = newColor.slice(7,9);
     opaciter.value = parseInt( '0x' + newColor.slice(7,9),16);
     colorer.value = newColor.slice(0,7);
 }
