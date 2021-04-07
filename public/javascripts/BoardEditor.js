@@ -15,8 +15,6 @@ let mouseOnText = false;
 let isDrawing = false;
 let textModeEnabled = false;
 let mouseStart = {x: 0,y: 0};
-let lastMouseX = 0;
-let lastMouseY = 0;
 const socket = io();
 const code = document.getElementById("code").value;
 let colorer;
@@ -308,10 +306,8 @@ if (canEdit) {
                 setColor("#FFFFFFFF");
                 break;
             case TOOL_MOVE:
-                mouseStart = {x: mouseX, y: mouseY};
-                lastMouseX = mouseX;
-                lastMouseY = mouseY;
-                console.log("set start");
+                mouseStart.x = mouseX;
+                mouseStart.y = mouseY;
                 break;
             default:
                 break;
@@ -339,6 +335,11 @@ if (canEdit) {
                     for (let id in board) {
                         // add to undo stack here
                         let wholetranslate = {x: mouseX - mouseStart.x, y: mouseY - mouseStart.y};
+
+                        board[id].updatePosition(mouseX - mouseStart.x, mouseY - mouseStart.y);
+                        mouseStart.x = mouseX;
+                        mouseStart.y = mouseY;
+                        board[id].updateTranslate(0,0);
                     }
                     compileBoard();
                     break;
@@ -620,10 +621,8 @@ function animate(timestamp) {
                 if(mouseDown){
                     // replace with selected ids
                     for (let id in board) {
-                        board[id].updateTranslate( mouseX-lastMouseX , mouseY-lastMouseY );
+                        board[id].updateTranslate( mouseX-mouseStart.x , mouseY-mouseStart.y );
                     }
-                    lastMouseX=mouseX;
-                    lastMouseY=mouseY;
                 }
                 compileBoard();
                 break; 

@@ -16,9 +16,12 @@ class DrawingObject {
     }
 
     updateTranslate(x,y){
+        this.svg.setAttribute("transform","translate("+Number(this.position.x+x)+","+Number(this.position.y+y)+")");
+    }
+
+    updatePosition(x,y) {
         this.position.x += x;
         this.position.y += y;
-        this.svg.setAttribute("transform","translate("+Number(this.position.x/5)+","+Number(this.position.y/5)+")");
     }
 
     getSvg() {
