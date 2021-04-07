@@ -14,6 +14,9 @@ let requestProcessing = false;
 let mouseOnText = false;
 let isDrawing = false;
 let textModeEnabled = false;
+let mouseStart = {x: 0,y: 0};
+let lastMouseX = 0;
+let lastMouseY = 0;
 const socket = io();
 const code = document.getElementById("code").value;
 let colorer;
@@ -40,6 +43,10 @@ $(".tool").click(function () {
             break;
         case "Eyedrop":
             tool = TOOL_EYEDROP;
+            leaveTextMode();
+            break;
+        case "Move":
+            tool = TOOL_MOVE;
             leaveTextMode();
             break;
         default:
@@ -256,6 +263,7 @@ if (canEdit) {
         if (requestProcessing) {
             return;
         }
+
         mouseDown = true;
         // if pen is selected tool
         switch (tool) {
@@ -274,7 +282,7 @@ if (canEdit) {
                     board[nextId] = new Text(nextId, textUpperLeft, textLowerRight, penSize + 20, color);
                     // focus on textbox soon as it is created
                     setTimeout(function () {
-                        board[nextId].foreignText.firstChild.focus();
+                        board[nextId].svg.firstChild.focus();
                     }, 0);
                     socket.emit("add", { type: TOOL_TEXT, code: code, id: nextId, content: {text: board[nextId].getText(), upperLeft: textUpperLeft, lowerRight: textLowerRight}, size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
@@ -299,6 +307,12 @@ if (canEdit) {
                 // Click whiteboard get the background color which is white
                 setColor("#FFFFFFFF");
                 break;
+            case TOOL_MOVE:
+                mouseStart = {x: mouseX, y: mouseY};
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+                console.log("set start");
+                break;
             default:
                 break;
         }
@@ -319,6 +333,14 @@ if (canEdit) {
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_RECTANGLE});
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
+                    break;
+                case TOOL_MOVE:
+                    // replace with selected ids
+                    for (let id in board) {
+                        // add to undo stack here
+                        let wholetranslate = {x: mouseX - mouseStart.x, y: mouseY - mouseStart.y};
+                    }
+                    compileBoard();
                     break;
                 default:
                     break;
@@ -591,6 +613,17 @@ function animate(timestamp) {
             case TOOL_RECTANGLE:
                 if(mouseDown){
                     updateRect();
+                }
+                compileBoard();
+                break; 
+            case TOOL_MOVE:
+                if(mouseDown){
+                    // replace with selected ids
+                    for (let id in board) {
+                        board[id].updateTranslate( mouseX-lastMouseX , mouseY-lastMouseY );
+                    }
+                    lastMouseX=mouseX;
+                    lastMouseY=mouseY;
                 }
                 compileBoard();
                 break; 
