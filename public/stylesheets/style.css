@@ -20,6 +20,10 @@ a {
   color: white;
 }
 
+.svg-selected {
+  border: 3px dashed #58f;
+}
+
 .textEnabled {
   border: 3px dashed #58f;
 }

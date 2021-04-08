@@ -42,6 +42,10 @@ $(".tool").click(function () {
             tool = TOOL_EYEDROP;
             leaveTextMode();
             break;
+        case "Select":
+            tool = TOOL_SELECT;
+            leaveTextMode();
+            break;
         default:
             break;
     }
@@ -299,6 +303,30 @@ if (canEdit) {
                 // Click whiteboard get the background color which is white
                 setColor("#FFFFFFFF");
                 break;
+            case TOOL_SELECT:
+                if (board[SELECT_BOX_ID]) {
+                    break;
+                }
+                board[SELECT_BOX_ID] = {
+                    initialx: mouseX,
+                    initialy: mouseY,
+                    getSvg() {
+                        let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                        let x = Math.min(mouseX, this.initialx);
+                        let y = Math.min(mouseY, this.initialy);
+                        let width = Math.abs(mouseX-this.initialx);
+                        let height = Math.abs(mouseY-this.initialy);
+                        rect.setAttribute("x", x);
+                        rect.setAttribute("y", y);
+                        rect.setAttribute("width", width);
+                        rect.setAttribute("height", height);
+                        rect.setAttribute("opacity", 0.3);
+                        rect.setAttribute("fill", "lightblue");
+                        return rect;
+                    }
+                }
+                compileBoard();
+                break;
             default:
                 break;
         }
@@ -319,6 +347,26 @@ if (canEdit) {
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_RECTANGLE});
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
+                    break;
+                case TOOL_SELECT:
+                    selected = [];
+                    let upperLeftX = Math.min(mouseX, board[SELECT_BOX_ID].initialx);
+                    let upperLeftY = Math.min(mouseY, board[SELECT_BOX_ID].initialy);
+                    let lowerRightX = Math.max(mouseX, board[SELECT_BOX_ID].initialx);
+                    let lowerRightY = Math.max(mouseY, board[SELECT_BOX_ID].initialy);
+                    for (id in board) {
+                        if (id == SELECT_BOX_ID) {
+                            continue;
+                        }
+                        if (board[id].upperLeft.x >= upperLeftX &&
+                            board[id].upperLeft.y >= upperLeftY &&
+                            board[id].lowerRight.x <= lowerRightX &&
+                            board[id].lowerRight.y <= lowerRightY) {
+                            selected.push(id);
+                        }
+                    }
+                    delete board[SELECT_BOX_ID];
+                    compileBoard();
                     break;
                 default:
                     break;
@@ -550,6 +598,9 @@ function compileBoard() {
     } else { // draw in order
         for (let id in board) {
             let element = board[id].getSvg();
+            if(selected.includes(id)) {
+                element.setAttribute("class", "svg-selected");
+            }
             svg.appendChild(element);
         }
     }
@@ -594,7 +645,10 @@ function animate(timestamp) {
                     updateRect();
                 }
                 compileBoard();
-                break; 
+                break;
+            case TOOL_SELECT:
+                compileBoard();
+                break;
         }  
         poll = POLL_RATE;
     }
