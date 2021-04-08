@@ -42,6 +42,10 @@ $(".tool").click(function () {
             tool = TOOL_EYEDROP;
             leaveTextMode();
             break;
+        case "Ellipse":
+            tool = TOOL_ELLIPSE;
+            leaveTextMode();
+            break;
         default:
             break;
     }
@@ -81,6 +85,10 @@ socket.on('joinData', function (data) {
                 break;
             case TOOL_RECTANGLE:
                 newBoard[id] = new Rectangle(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
+                newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
+                break;
+            case TOOL_ELLIPSE:
+                newBoard[id] = new Ellipse(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
                 newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
                 break;
         }
@@ -124,6 +132,14 @@ socket.on("add", function (data) {
                 requestProcessing = true;
             }
             break;
+        case TOOL_ELLIPSE:
+            board[data.id] = new Ellipse(data.id, data.content.upperLeft, data.content.lowerRight, data.color);
+            board[data.id].updateFromCorners(data.content.upperLeft, data.content.lowerRight);
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
+            }
+            break;
     }
     compileBoard();
 });
@@ -133,6 +149,7 @@ socket.on("update", function (data) {
     if (nextId == data.id) {
         return;
     }
+    console.log(data.type);
     switch (data.type) {
         case TOOL_PEN:
             // If this board already has this Pen object, then update it accordingly
@@ -163,6 +180,16 @@ socket.on("update", function (data) {
             // Otherwise print err message to console
             else {
                 console.log("attempted to update rectangle that is not in board");
+            }
+            break;
+        case TOOL_ELLIPSE:
+            // If this board already has this ellipse, then update it accordingly
+            if (board[data.id]) {
+                board[data.id].updateFromCorners(data.content.upperLeft, data.content.lowerRight);
+            }
+            // Otherwise print err message to console
+            else {
+                console.log("attempted to update ellipse that is not in board");
             }
             break;
     }
@@ -291,8 +318,14 @@ if (canEdit) {
             case TOOL_RECTANGLE:
                 board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color);
                 // Emit here
-                socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: {upperLeft: {x: mouseX, y: mouseY}, lowerRight: {x: mouseX, y: mouseY}}});
-                // // get a new id for nextId
+                socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, 
+                    content: {upperLeft: {x: mouseX, y: mouseY}, lowerRight: {x: mouseX, y: mouseY}}});
+                compileBoard();
+                break;
+            case TOOL_ELLIPSE:
+                board[nextId] = new Ellipse(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color)
+                socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, 
+                    content: {upperLeft: {x: mouseX, y: mouseY}, lowerRight: {x: mouseX, y: mouseY}}});
                 compileBoard();
                 break;
             case TOOL_EYEDROP:
@@ -320,6 +353,10 @@ if (canEdit) {
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
                     break;
+                case TOOL_ELLIPSE:
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_ELLIPSE});
+                    socket.emit("requestNewId", { code: code });
+                    requestProcessing = true;
                 default:
                     break;
             }
@@ -409,6 +446,9 @@ let undoFunc = function () {
                 case TOOL_RECTANGLE:
                     socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                     break;
+                case TOOL_ELLIPSE:
+                    socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
+                    break;
             }
             break;
         case "clear":
@@ -435,6 +475,9 @@ let undoFunc = function () {
                         case TOOL_RECTANGLE:
                             socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
                             break;
+                        case TOOL_ELLIPSE:
+                            socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
+                            break;
                     }
                 }
             }
@@ -449,6 +492,7 @@ $("#undo").click(undoFunc);
 let redoFunc = function () {
     if (redoStack.length != 0) {
         data = redoStack[redoStack.length - 1];
+        console.log(data.type);
         switch (data.type) {
             case "add":
                 // find position in board array?
@@ -464,6 +508,9 @@ let redoFunc = function () {
                         break;
                     case TOOL_RECTANGLE:
                         socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
+                        break;
+                    case TOOL_ELLIPSE:
+                        socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                         break;
                 }
                 break;
@@ -568,10 +615,10 @@ function plotPenPoint() {
     newPoints = [];
 }
 
-function updateRect(){
+function updateShape(type){
     board[nextId].updateShape(mouseX, mouseY);
     // EMIT HERE
-    socket.emit("update", {type: TOOL_RECTANGLE, code: code, id: nextId, color: board[nextId].color, content: {upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight}});
+    socket.emit("update", {type: type, code: code, id: nextId, color: board[nextId].color, content: {upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight}});
 }
 
 // For drawing listener polling
@@ -590,10 +637,16 @@ function animate(timestamp) {
                 break;  
             case TOOL_RECTANGLE:
                 if(mouseDown){
-                    updateRect();
+                    updateShape(TOOL_RECTANGLE);
                 }
                 compileBoard();
                 break; 
+            case TOOL_ELLIPSE:
+                if(mouseDown){
+                    updateShape(TOOL_ELLIPSE);
+                }
+                compileBoard();
+                break;
         }  
         poll = POLL_RATE;
     }

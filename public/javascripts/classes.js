@@ -323,3 +323,78 @@ class Rectangle extends DrawingObject {
         return this.rect;
     }
 }
+
+class Ellipse extends DrawingObject {
+    constructor(id, upperLeft, lowerRight, color) {
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_ELLIPSE);
+        this.color = color;
+        this.x = upperLeft.x + Math.abs(lowerRight.x-upperLeft.x)/2;
+        this.y = upperLeft.y + Math.abs(lowerRight.y-upperLeft.y)/2;
+        this.rx = 1;
+        this.ry = 1;
+        // Set up the SVG path
+        this.ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        this.ellipse.setAttribute("fill", color);
+        this.ellipse.setAttribute("cx", this.x);
+        this.ellipse.setAttribute("cy", this.y);
+        this.ellipse.setAttribute("rx", this.rx);
+        this.ellipse.setAttribute("ry", this.ry);
+        this.ellipse.onmouseenter = function () {
+            if (mouseDown && tool == TOOL_ERASER) {
+                erase(id);
+            }
+        };
+        this.ellipse.onmousedown = function () {
+            if (tool == TOOL_ERASER) {
+                erase(id);
+            }
+        }
+        this.ellipse.onmouseup = function () {
+            switch (tool) {
+                case TOOL_EYEDROP:
+                    setColor(color);
+                    break;
+            }
+        };
+    }
+
+    // Add points to the path
+    updateShape(mouseX, mouseY) {
+        this.rx = Math.abs(mouseX - this.x);
+        this.ry = Math.abs(mouseY - this.y);
+        if (mouseX < this.x) {
+            this.upperLeft.x = mouseX;
+            this.lowerRight.x = mouseX + this.rx * 2;
+        } else {
+            this.lowerRight.x = mouseX;
+            this.upperLeft.x = mouseX - this.rx * 2;
+        }
+        if (mouseY < this.y) {
+            this.upperLeft.y = mouseY;
+            this.lowerRight.y = mouseY + this.ry * 2;
+        } else {
+            this.lowerRight.y = mouseY;
+            this.upperLeft.y = mouseY - this.ry * 2;
+        }
+        this.ellipse.setAttribute("rx", Math.abs(this.rx));
+        this.ellipse.setAttribute("ry", Math.abs(this.ry));
+        return this.upperLeft, this.lowerRight;
+    }
+
+    updateFromCorners(upperLeft, lowerRight) {
+        this.upperLeft = upperLeft;
+        this.lowerRight = lowerRight;
+        this.x = upperLeft.x + Math.abs(lowerRight.x-upperLeft.x)/2;
+        this.y = upperLeft.y + Math.abs(lowerRight.y-upperLeft.y)/2;
+        this.rx = Math.abs(lowerRight.x - upperLeft.x)/2;
+        this.ry = Math.abs(lowerRight.y-upperLeft.y)/2;
+        this.ellipse.setAttribute("x", this.x);
+        this.ellipse.setAttribute("y", this.y);
+        this.ellipse.setAttribute("rx", Math.abs(this.rx));
+        this.ellipse.setAttribute("ry", Math.abs(this.ry));
+    }
+
+    getSvg() {
+        return this.ellipse;
+    }
+}
