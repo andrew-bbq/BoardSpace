@@ -76,7 +76,6 @@ socket.on('joinData', function (data) {
     let newBoard = {};
     // Get the board objects
     for (id in sentBoard) {
-        console.log(sentBoard[id].type);
         switch (sentBoard[id].type) {          
             case TOOL_PEN:
                 newBoard[id] = new Pen(id, sentBoard[id].data.content.upperleft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
@@ -125,7 +124,6 @@ socket.on("add", function (data) {
         case TOOL_POLYGON:
             board[data.id] = new Polygon(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
             if (data.content && data.content.path) {
-                console.log(data.content.path);
                 board[data.id].setPath(data.content.path);
             }
             if (!mouseDown) {
@@ -171,7 +169,6 @@ socket.on("update", function (data) {
             }
             break;
         case TOOL_POLYGON:
-            console.log("update");
             if (board[data.id]) {
                 board[data.id].updatePathData(data.newPoints);
                 board[data.id].upperLeft = data.content.upperLeft;
@@ -534,7 +531,7 @@ let undoFunc = function () {
                                 content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
                             break;
                         case TOOL_POLYGON:
-                            socket.emit("add", { code: code, type: TOOL_POLYGON, id: data.id, 
+                            socket.emit("add", { code: code, type: TOOL_POLYGON, id: object.id, 
                                 content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
                             break;
                         case TOOL_TEXT:
