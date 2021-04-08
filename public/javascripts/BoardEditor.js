@@ -14,6 +14,9 @@ let requestProcessing = false;
 let mouseOnText = false;
 let isDrawing = false;
 let textModeEnabled = false;
+let selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
+let previousMouse = {x: 0, y: 0};
+let isEditing = false;
 const socket = io();
 const code = document.getElementById("code").value;
 let colorer;
@@ -23,27 +26,33 @@ $(".tool").click(function () {
     switch ($(this).val()) {
         case "Pen":
             tool = TOOL_PEN;
+            resetSelection();
             leaveTextMode();
             break;
         case "Eraser":
             tool = TOOL_ERASER;
+            resetSelection();
             leaveTextMode();
             break;
         case "Text":
             tool = TOOL_TEXT;
+            resetSelection();
             enterTextMode();
             compileBoard();
             break;
         case "Rectangle":
             tool = TOOL_RECTANGLE;
+            resetSelection();
             leaveTextMode();
             break;
         case "Eyedrop":
             tool = TOOL_EYEDROP;
+            resetSelection();
             leaveTextMode();
             break;
         case "Select":
             tool = TOOL_SELECT;
+            resetSelection();
             leaveTextMode();
             break;
         default:
@@ -52,6 +61,11 @@ $(".tool").click(function () {
     $(".tool").removeAttr("id");
     $(this).attr("id", "selected");
 });
+
+function resetSelection() {
+    selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
+    selected = [];
+}
 
 socket.emit('join', { code: code });
 
@@ -191,6 +205,14 @@ socket.on('erase', function (data) {
     compileBoard();
 });
 
+socket.on("updatePosition", data => {
+    if (board[data.id]) {
+        board[data.id].position = data.position;
+        board[data.id].upperLeft = data.upperLeft;
+        board[data.id].lowerRight = data.lowerRight;
+    }
+});
+
 /**
  * newId
  * Get a new ID from the server to attach to a new drawing objec
@@ -307,6 +329,16 @@ if (canEdit) {
                 if (board[SELECT_BOX_ID]) {
                     break;
                 }
+                if (mouseX >= selection.upperLeft.x &&
+                    mouseX <= selection.lowerRight.x &&
+                    mouseY >= selection.upperLeft.y &&
+                    mouseY <= selection.lowerRight.y) {
+                    previousMouse.x = mouseX;
+                    previousMouse.y = mouseY;
+                    isEditing = true;
+                    break;
+                }
+                selected = [];
                 board[SELECT_BOX_ID] = {
                     initialx: mouseX,
                     initialy: mouseY,
@@ -350,20 +382,28 @@ if (canEdit) {
                     break;
                 case TOOL_SELECT:
                     selected = [];
-                    let upperLeftX = Math.min(mouseX, board[SELECT_BOX_ID].initialx);
-                    let upperLeftY = Math.min(mouseY, board[SELECT_BOX_ID].initialy);
-                    let lowerRightX = Math.max(mouseX, board[SELECT_BOX_ID].initialx);
-                    let lowerRightY = Math.max(mouseY, board[SELECT_BOX_ID].initialy);
+                    selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
+                    if (isEditing) {
+                        isEditing = false;
+                        break;
+                    }
+                    selection.upperLeft.x = Math.min(mouseX, board[SELECT_BOX_ID].initialx);
+                    selection.upperLeft.y = Math.min(mouseY, board[SELECT_BOX_ID].initialy);
+                    selection.lowerRight.x = Math.max(mouseX, board[SELECT_BOX_ID].initialx);
+                    selection.lowerRight.y = Math.max(mouseY, board[SELECT_BOX_ID].initialy);
                     for (id in board) {
                         if (id == SELECT_BOX_ID) {
                             continue;
                         }
-                        if (board[id].upperLeft.x >= upperLeftX &&
-                            board[id].upperLeft.y >= upperLeftY &&
-                            board[id].lowerRight.x <= lowerRightX &&
-                            board[id].lowerRight.y <= lowerRightY) {
+                        if (board[id].upperLeft.x >= selection.upperLeft.x &&
+                            board[id].upperLeft.y >= selection.upperLeft.y &&
+                            board[id].lowerRight.x <= selection.lowerRight.x &&
+                            board[id].lowerRight.y <= selection.lowerRight.y) {
                             selected.push(id);
                         }
+                    }
+                    if(selected.length == 0) {
+                        selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
                     }
                     delete board[SELECT_BOX_ID];
                     compileBoard();
@@ -597,10 +637,12 @@ function compileBoard() {
         }
     } else { // draw in order
         for (let id in board) {
-            let element = board[id].getSvg();
             if(selected.includes(id)) {
-                element.setAttribute("class", "svg-selected");
+                board[id].selected = true;
+            } else {
+                board[id].selected = false;
             }
+            let element = board[id].getSvg();
             svg.appendChild(element);
         }
     }
@@ -647,6 +689,22 @@ function animate(timestamp) {
                 compileBoard();
                 break;
             case TOOL_SELECT:
+                if (isEditing) {
+                    let transX = mouseX - previousMouse.x;
+                    let transY = mouseY - previousMouse.y;
+                    previousMouse.x = mouseX;
+                    previousMouse.y = mouseY;
+                    for(let i = 0; i < selected.length; i++) {
+                        let id = selected[i];
+                        board[id].position.x += transX;
+                        board[id].position.y += transY;
+                        board[id].upperLeft.x += transX;
+                        board[id].upperLeft.y += transY;
+                        board[id].lowerRight.x += transX;
+                        board[id].lowerRight.y += transY;
+                        socket.emit("updatePosition", {code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight});
+                    }
+                }
                 compileBoard();
                 break;
         }  

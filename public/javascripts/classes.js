@@ -1,5 +1,4 @@
 const DEF_ROTATE = "0 0 0";
-const DEF_POS = "0 0 0";
 const DEF_SCALE = "0 0";
 
 class DrawingObject {
@@ -11,10 +10,21 @@ class DrawingObject {
         this.upperLeft = upperLeft;
         this.lowerRight = lowerRight;
         this.type = type;
+        this.selected = false;
     }
 
     getSvg() {
 
+    }
+
+    applyTransformations(svg) {
+        svg.setAttribute("transform", "translate("+Number(this.position.x)+","+Number(this.position.y)+")");
+        if (this.selected) {
+            svg.classList.add("svg-selected");
+        } else {
+            svg.classList.remove("svg-selected");
+        }
+        return svg;
     }
 }
 
@@ -33,7 +43,7 @@ class Pen extends DrawingObject {
     //  lowerRight: bounding rectangle lower right corner
     //  size: pen stroke-width
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
+        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -71,7 +81,7 @@ class Pen extends DrawingObject {
     }
 
     getSvg() {
-        return this.path;
+        return super.applyTransformations(this.path);
     }
 
     // Set the path string
@@ -147,7 +157,7 @@ class Text extends DrawingObject {
     //  size: font size
     //  color: text color
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
+        super(id, {x:upperLeft.x, y:upperLeft.y}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
         this.size = size;
         this.color = color;
         this.height = this.lowerRight.y-this.upperLeft.y;
@@ -192,7 +202,6 @@ class Text extends DrawingObject {
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("unselectable");
         this.foreignText.classList.add("textEnabled");
-        this.foreignText.setAttribute("transform", "translate(" + this.upperLeft.x + " " + this.upperLeft.y + ")");
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
             if (tool == TOOL_TEXT) {
@@ -223,7 +232,7 @@ class Text extends DrawingObject {
         };
     }
     getSvg() {
-        return this.foreignText;
+        return super.applyTransformations(this.foreignText);
     }
 
     // Set the path string
@@ -248,7 +257,7 @@ class Text extends DrawingObject {
 
 class Rectangle extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
+        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
         this.color = color;
         this.x = upperLeft.x;
         this.y = upperLeft.y;
@@ -321,6 +330,6 @@ class Rectangle extends DrawingObject {
     }
 
     getSvg() {
-        return this.rect;
+        return super.applyTransformations(this.rect);
     }
 }

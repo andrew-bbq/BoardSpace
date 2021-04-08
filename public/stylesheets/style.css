@@ -22,6 +22,7 @@ a {
 
 .svg-selected {
   border: 3px dashed #58f;
+  outline: 3px dashed #58f;
 }
 
 .textEnabled {
