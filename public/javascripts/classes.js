@@ -324,3 +324,104 @@ class Rectangle extends DrawingObject {
         return this.rect;
     }
 }
+
+class Polygon extends DrawingObject {
+    constructor(id, upperLeft, lowerRight, size, color) {
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_POLYGON);
+        this.size = size;
+        this.color = color;
+        // Set up the SVG path
+        this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this.path.setAttribute("stroke-width", this.size);
+        this.path.setAttribute("fill", color);
+        //this.path.setAttribute("style", "pointer-events: all;");
+        this.path.setAttribute("stroke", this.color);
+        this.path.setAttribute("stroke-linecap", "round");
+        this.path.setAttribute("stroke-linejoin", "round");
+        this.path.setAttribute("d", "");
+        this.path.onmouseenter = function () {
+            if (mouseDown) {
+                switch (tool) {
+                    case TOOL_ERASER:
+                        erase(id);
+                        break;
+                }
+            }
+        };
+        this.path.onmousedown = function () {
+            switch (tool) {
+                case TOOL_ERASER:
+                    erase(id);
+                    break;
+            }
+        };
+        this.path.onmouseup = function () {
+            switch (tool) {
+                case TOOL_EYEDROP:
+                    setColor(color);
+                    break;
+            }
+        };
+    }
+
+    getSvg() {
+        return this.path;
+    }
+
+    // Set the path string
+    setPath(path) {
+        this.path.setAttribute("d", path);
+    }
+
+    // Get the path string
+    getPath() {
+        return this.path.getAttribute("d");
+    }
+
+    // Add points to the path
+    updatePathData(newpoints) {
+        let pathString;
+        if (newpoints.length == 0) {
+            return;
+        }
+        // if path just started, add the moveTo
+        if (this.path.getAttribute("d") == "") {
+            pathString = "M " + newpoints[0].x + " " + newpoints[0].y;
+        }
+        // if path already started, add some lineTo's
+        else {
+            // lineTo
+            if (newpoints[0].type == "line") {
+                pathString = " L " + newpoints[0].x + " " + newpoints[0].y;
+            }
+        }
+        // update upperleft and lowerright points
+        this.updateCornerPoints(newpoints[0]);
+
+        // add the rest of the new points if there are any
+        for (let i = 1; i < newpoints.length; i++) {
+            if (newpoints[i].type == "line") {
+                pathString += " L " + newpoints[i].x + " " + newpoints[i].y;
+            }
+            this.updateCornerPoints(newpoints[i]);
+        }
+        // update the path string for this pen
+        this.path.setAttribute("d", this.path.getAttribute("d") + pathString);
+    }
+
+    // update corners given a new point
+    updateCornerPoints(point) {
+        if (point.x < this.upperLeft.x || this.upperLeft.x == -1) {
+            this.upperLeft.x = point.x;
+        }
+        if (point.y < this.upperLeft.y || this.upperLeft.y == -1) {
+            this.upperLeft.y = point.y;
+        }
+        if (point.x > this.lowerRight.x || this.lowerRight.x == -1) {
+            this.lowerRight.x = point.x;
+        }
+        if (point.y > this.lowerRight.y || this.lowerRight.y == -1) {
+            this.lowerRight.y = point.y;
+        }
+    }
+}

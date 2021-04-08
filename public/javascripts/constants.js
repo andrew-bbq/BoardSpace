@@ -6,6 +6,7 @@ const TOOL_ERASER = 8;
 const TOOL_TEXT = 16;
 const TOOL_EYEDROP = 32;
 const TOOL_SELECT = 64;
+const TOOL_POLYGON = 128;
 const BOARD_WIDTH = 1000;
 const BOARD_HEIGHT = 750;
 const DEFAULT_TEXT_HEIGHT = 100;
