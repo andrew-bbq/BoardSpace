@@ -547,7 +547,7 @@ class Ellipse extends DrawingObject {
     clone() {
         let copy = new Ellipse(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
         copy.position = {x: this.position.x, y: this.position.y};
-        copy.updateFromCorners(this.upperLeft,this.lowerRight);
+        copy.ellipse = this.ellipse;
         return copy;
     }
 }
