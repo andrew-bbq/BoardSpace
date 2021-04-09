@@ -349,4 +349,25 @@ describe('Test Rectangle Class', () => {
             expect(rectangle.rect.getAttribute("y")).to.equal(rectangle.y.toString());
         });
     });
+
+    describe('Test updateFromCorners', () => {
+        it('should properly update rectangle variables', () =>{
+            rectangle.updateFromCorners({ x: 75, y: 75 }, { x: 125, y: 125 });
+            expect(rectangle.upperLeft.x).to.equal(75);
+            expect(rectangle.upperLeft.y).to.equal(75);
+
+            expect(rectangle.lowerRight.x).to.equal(125);
+            expect(rectangle.lowerRight.y).to.equal(125);
+
+            expect(rectangle.width).to.equal(rectangle.lowerRight.x - rectangle.upperLeft.x);
+            expect(rectangle.height).to.equal(rectangle.lowerRight.y - rectangle.upperLeft.y);
+        });
+        it('should properly update rectangle variables', () =>{
+            rectangle.updateFromCorners({ x: 75, y: 75 }, { x: 125, y: 125 });
+            expect(rectangle.rect.getAttribute("x")).to.equal(rectangle.x.toString());
+            expect(rectangle.rect.getAttribute("y")).to.equal(rectangle.y.toString());
+            expect(rectangle.rect.getAttribute("width")).to.equal(Math.abs(rectangle.width).toString());
+            expect(rectangle.rect.getAttribute("height")).to.equal(Math.abs(rectangle.height).toString());
+        });
+    });
 });
