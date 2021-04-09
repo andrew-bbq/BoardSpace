@@ -145,4 +145,19 @@ describe('Test Pen Class', () => {
         expect(pen.getPath()).to.equal(expectedPath3);
     });
 
+    // resetting pen to new values
+    pen2 = new Pen(1, { x: 50, y: 50 }, { x: 100 , y: 100 }, 2, "#FFFFFF");
+    let point1 = { x: 10, y: 10 };
+    let point2 = { x: 150, y: 150 };
+    it('should correctly update corner points with lower upperLeft values', () =>{
+        pen2.updateCornerPoints(point1);
+        expect(pen2.upperLeft.x).to.equal(10);
+        expect(pen2.upperLeft.y).to.equal(10);
+    });
+    it('should correctly update corner points with higher lowerRight values', () =>{
+        pen2.updateCornerPoints(point2);
+        expect(pen2.lowerRight.x).to.equal(150);
+        expect(pen2.lowerRight.y).to.equal(150);
+    });
+
 }); 
