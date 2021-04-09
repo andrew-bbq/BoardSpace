@@ -236,7 +236,7 @@ class Text extends DrawingObject {
 
 class Rectangle extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, constants.TOOL_RECTANGLE);
         this.color = color;
         this.x = upperLeft.x;
         this.y = upperLeft.y;

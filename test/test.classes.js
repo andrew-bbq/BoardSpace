@@ -34,9 +34,9 @@ const Text = classes.Text;
 const Rectangle = classes.Rectangle;
 
 
-////////////////////////////////////////
+///////////////////////////////////////
 //          << pen tests >>          //
-////////////////////////////////////////
+///////////////////////////////////////
 describe('Test Pen Class', () => {
 
     let pen = new Pen(1, { x: 0, y: 0 }, { x: 0, y: 0 }, 2, "#FFFFFF");
@@ -165,6 +165,9 @@ describe('Test Pen Class', () => {
         expect(pen2.lowerRight.y).to.equal(150);
     });
 
+    // test mouse events
+
+
 }); 
 
 ////////////////////////////////////////
@@ -172,6 +175,7 @@ describe('Test Pen Class', () => {
 ////////////////////////////////////////
 describe('Test Text Class', () => {
     let text = new Text(2, { x: 0, y: 0 }, { x: 0, y: 0 }, 2, "#FFFFFF");
+    let text2 = new Text(2, { x: 0, y: 0 }, { x: 0, y: 0 }, 2, "#FFFFFF");
 
     describe('Test Instantiation', () => {
         // Test if text is actually created
@@ -202,9 +206,106 @@ describe('Test Text Class', () => {
         });
     });
 
+    // Testing getSVG
+    it('should return a non null foreignText', () =>{
+        try{
+            text.getSvg();
+            expect(text.foreignText).to.not.equal(null);
+        } catch (e) {
+            console.error(e);
+            throw "Error returning foreignText";
+        }
+    });
+
+    describe('Test setText and getText', () => {
+        text.setText("abcdefg");
+        it('should set path string correctly', () =>{
+            expect(text.textDiv.innerHTML).to.equal("abcdefg");
+        });
+
+        it('should get path string correctly', () =>{;
+            expect(text.getText()).to.equal("abcdefg");
+        });
+    });
+    describe('Test enable and disable', () => {
+        describe('Test enable', () => {
+            text.enable();
+            it('should set contendEditable to true', () =>{
+                expect(text.textDiv.getAttribute("contentEditable")).to.equal("true");
+            });
+            it('should add "textEnabled to classList', () =>{
+                expect(text.foreignText.classList.contains("textEnabled")).to.equal(true);
+            });
+        });
+        describe('Test disable', () => {
+            text2.disable();
+            it('should set contendEditable to false', () =>{
+                expect(text2.textDiv.getAttribute("contentEditable")).to.equal("false");
+            });
+            it('should remove "textEnabled from classList', () =>{
+                expect(text2.foreignText.classList.contains("textEnabled")).to.equal(false);
+            });
+        });
+    });
 });
 
 
 
 
 //          << Rectangle tests >>
+describe('Test Rectangle Class', () => {
+    let rectangle = new Rectangle(3, { x: 100, y: 100 }, { x: 150, y: 150 }, "#FFFFFF");
+    let rectangle2 = new Rectangle(3, { x: 100, y: 100 }, { x: 150, y: 150 }, "#FFFFFF");
+
+    describe('Test Instantiation', () => {
+        // Test if text is actually created
+        it('should not be null', () =>{
+            if(rectangle == null){
+                throw "Rectangle is NULL";
+            }
+        });
+
+        it('should have correct id', () =>{
+            expect(rectangle.id).to.equal(3);
+        });
+
+        it('should have correct upperLeft', () =>{
+            expect(rectangle.upperLeft).to.deep.equal({ x: 100, y: 100 });
+        });
+
+        it('should have correct lowerRight', () =>{
+            expect(rectangle.lowerRight).to.deep.equal({ x: 150, y: 150 });
+        });
+
+        it('should have correct color', () =>{
+            expect(rectangle.color).to.equal("#FFFFFF");
+        });
+    });
+
+    describe('Test updateShape', () => {
+        it('should properly update rectangle x and y for mouse x,y < rect x,y', () =>{
+            rectangle.updateShape(50, 50);
+            // test x
+            expect(rectangle.upperLeft.x).to.equal(50);
+            expect(rectangle.lowerRight.x).to.equal(rectangle.x);
+            expect(rectangle.rect.getAttribute("x")).to.equal('50');
+
+            // test y
+            expect(rectangle.upperLeft.y).to.equal(50);
+            expect(rectangle.lowerRight.y).to.equal(rectangle.y);
+            expect(rectangle.rect.getAttribute("y")).to.equal('50');
+        });
+        it('should properly update rectangle x and y for mouse x,y > rect x,y', () =>{
+            rectangle.updateShape(120, 120);
+            // test x
+            expect(rectangle.upperLeft.x).to.equal(rectangle.x);
+            expect(rectangle.lowerRight.x).to.equal(120);
+            expect(rectangle.rect.getAttribute("x")).to.equal(rectangle.x.toString());
+
+            // test y
+            expect(rectangle.upperLeft.y).to.equal(rectangle.y);
+            expect(rectangle.lowerRight.y).to.equal(120);
+            expect(rectangle.rect.getAttribute("y")).to.equal(rectangle.y.toString());
+        });
+    });
+});
