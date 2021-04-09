@@ -617,6 +617,7 @@ let undoFunc = function () {
                     socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                     break;
                 case TOOL_ELLIPSE:
+                    console.log("undo erase ellipse");
                     socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: {upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}});
                     break;
             }
@@ -679,6 +680,13 @@ let undoFunc = function () {
                             break;
                         case TOOL_RECTANGLE:
                             socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
+                            break;
+                        case TOOL_POLYGON:
+                            socket.emit("add", { code: code, type: TOOL_POLYGON, id: object.id, 
+                                content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
+                            break;
+                        case TOOL_ELLIPSE:
+                            socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
                             break;
                     }
             }
