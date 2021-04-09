@@ -26,6 +26,10 @@ class DrawingObject {
         }
         return svg;
     }
+
+    clone() {
+
+    }
 }
 
 // class FreeFormDrawingObject extends DrawingObject { 
@@ -78,6 +82,13 @@ class Pen extends DrawingObject {
                     break;
             }
         };
+    }
+
+    clone() {
+        let copy = new Pen(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
+        copy.position = {x: this.position.x, y: this.position.y};
+        copy.path = this.path;
+        return copy;
     }
 
     getSvg() {
@@ -231,6 +242,15 @@ class Text extends DrawingObject {
             }
         };
     }
+
+    clone() {
+        let copy = new Text(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
+        copy.textDiv = this.textDiv;
+        copy.foreignText = this.foreignText;
+        copy.position = {x: this.position.x, y: this.position.y};
+        return copy;
+    }
+
     getSvg() {
         return super.applyTransformations(this.foreignText);
     }
@@ -287,6 +307,13 @@ class Rectangle extends DrawingObject {
                     break;
             }
         };
+    }
+
+    clone() {
+        let copy = new Rectangle(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
+        copy.position = {x: this.position.x, y: this.position.y};
+        copy.rect = this.rect;
+        return copy;
     }
 
     // Add points to the path

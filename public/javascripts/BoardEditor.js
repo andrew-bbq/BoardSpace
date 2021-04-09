@@ -346,6 +346,12 @@ if (canEdit) {
                     previousMouse.x = mouseX;
                     previousMouse.y = mouseY;
                     isEditing = true;
+                    let moveObjects = [];
+                    for (let i = 0; i < selected.length; i++) {
+                        // bootleg clone
+                        moveObjects.push(board[selected[i]].clone());
+                    }
+                    undoStack.push({type: "move", objects: moveObjects});
                     break;
                 }
                 selected = [];
@@ -469,10 +475,14 @@ if (canEdit) {
             event.preventDefault();
         }
         if (event.key == "Delete" && selected.length > 0) {
+            let undoObjects = [];
             for (let i = 0; i < selected.length; i++) {
+                undoObjects.push(board[selected[i]]);
                 delete board[selected[i]];
             }
             socket.emit("multiErase",{code: code, ids: selected});
+            undoStack.push({ type: "multierase", objects: undoObjects});
+            console.log(undoStack);
             selected = [];
         }
 
@@ -488,7 +498,7 @@ if (canEdit) {
 
 
 let undoFunc = function () {
-    if (undoStack.length == 0) {
+    if (undoStack.length == 0 || isEditing) {
         return;
     }
     data = undoStack[undoStack.length - 1];
@@ -545,6 +555,45 @@ let undoFunc = function () {
             }
             compileBoard();
             break;
+        case "multierase":
+            // add back all of the things deleted with the select-delete
+            let erases = undoStack.pop();
+            redoStack.push(erases);
+            let objects = erases.objects;
+            for (let i = 0; i < objects.length; i++) {
+                let object = objects[i];
+                if (board[object.id]) {
+                    console.log("tried to write over an object with undo clear");
+                    continue;
+                }
+                board[object.id] = object;
+                    switch (object.type) {
+                        case TOOL_PEN:
+                            socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
+                            break;
+                        case TOOL_TEXT:
+                            socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, content: {text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
+                            break;
+                        case TOOL_RECTANGLE:
+                            socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: {upperLeft: object.upperLeft, lowerRight: object.lowerRight}});
+                            break;
+                    }
+            }
+            compileBoard();
+            break;
+        case "move":
+            let move = undoStack.pop();
+            let movedObjects = [];
+            let moveObjects = move.objects;
+            for (let i = 0; i < moveObjects.length; i++) {
+                let object = moveObjects[i];
+                movedObjects.push(board[object.id]);
+                board[object.id] = moveObjects[i];
+                socket.emit("updatePosition", {code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight});
+            }
+            compileBoard();
+            redoStack.push({type: "move", objects: movedObjects});
+            break;
         default:
             break;
     }
@@ -594,6 +643,34 @@ let redoFunc = function () {
                     }
                 }
                 compileBoard();
+                break;
+            case "multierase":
+                let erases = redoStack.pop();
+                let objects = erases.objects;
+                undoStack.push(erases);
+                for (let i = 0; i < objects.length; i++) {
+                    let id = objects[i].id;
+                    if (!board[id]) {
+                        console.log("tried to erase an object that doesn't exist");
+                        continue;
+                    }
+                    delete board[id];
+                    socket.emit("erase", {code: code, id: id});
+                }
+                break;
+            case "move":
+                let move = redoStack.pop();
+                let movedObjects = [];
+                let moveObjects = move.objects;
+                for (let i = 0; i < moveObjects.length; i++) {
+                    let object = moveObjects[i];
+                    movedObjects.push(board[object.id]);
+                    board[object.id] = moveObjects[i];
+                    socket.emit("updatePosition", {code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight});
+                }
+                compileBoard();
+                undoStack.push({type: "move", movedObjects});
+                break;
             default:
                 break;
         }
