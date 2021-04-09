@@ -38,12 +38,18 @@ $(".tool").click(function () {
             tool = TOOL_RECTANGLE;
             leaveTextMode();
             break;
+        case "Polygon":
+            tool = TOOL_POLYGON;
+            leaveTextMode();
+            break;
         case "Eyedrop":
             tool = TOOL_EYEDROP;
             leaveTextMode();
             break;
         case "Ellipse":
             tool = TOOL_ELLIPSE;
+        case "Select":
+            tool = TOOL_SELECT;
             leaveTextMode();
             break;
         default:
@@ -72,7 +78,7 @@ socket.on('joinData', function (data) {
     let newBoard = {};
     // Get the board objects
     for (id in sentBoard) {
-        switch (sentBoard[id].type) {
+        switch (sentBoard[id].type) {          
             case TOOL_PEN:
                 newBoard[id] = new Pen(id, sentBoard[id].data.content.upperleft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
                 if (sentBoard[id].data.content && sentBoard[id].data.content.path) {
@@ -91,6 +97,11 @@ socket.on('joinData', function (data) {
                 newBoard[id] = new Ellipse(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
                 newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
                 break;
+            case TOOL_POLYGON:
+                newBoard[id] = new Polygon(id, sentBoard[id].data.content.upperleft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
+                if (sentBoard[id].data.content && sentBoard[id].data.content.path) {
+                    newBoard[id].setPath(sentBoard[id].data.content.path);
+                }
         }
     }
     board = newBoard;
@@ -108,6 +119,16 @@ socket.on("add", function (data) {
     switch (data.type) {
         case TOOL_PEN:
             board[data.id] = new Pen(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
+            if (data.content && data.content.path) {
+                board[data.id].setPath(data.content.path);
+            }
+            if (!mouseDown) {
+                socket.emit("requestNewId", { code: code });
+                requestProcessing = true;
+            }
+            break;
+        case TOOL_POLYGON:
+            board[data.id] = new Polygon(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
             if (data.content && data.content.path) {
                 board[data.id].setPath(data.content.path);
             }
@@ -160,6 +181,16 @@ socket.on("update", function (data) {
             }
             else {
                 console.log("attempted to update Pen that is not in board");
+            }
+            break;
+        case TOOL_POLYGON:
+            if (board[data.id]) {
+                board[data.id].updatePathData(data.newPoints);
+                board[data.id].upperLeft = data.content.upperLeft;
+                board[data.id].lowerRight = data.content.lowerRight;
+            }
+            else {
+                console.log("attempted to update Polygon that is not in board");
             }
             break;
         case TOOL_TEXT:
@@ -332,6 +363,37 @@ if (canEdit) {
                 // Click whiteboard get the background color which is white
                 setColor("#FFFFFFFF");
                 break;
+            case TOOL_SELECT:
+                if (board[SELECT_BOX_ID]) {
+                    break;
+                }
+                board[SELECT_BOX_ID] = {
+                    initialx: mouseX,
+                    initialy: mouseY,
+                    getSvg() {
+                        let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                        let x = Math.min(mouseX, this.initialx);
+                        let y = Math.min(mouseY, this.initialy);
+                        let width = Math.abs(mouseX-this.initialx);
+                        let height = Math.abs(mouseY-this.initialy);
+                        rect.setAttribute("x", x);
+                        rect.setAttribute("y", y);
+                        rect.setAttribute("width", width);
+                        rect.setAttribute("height", height);
+                        rect.setAttribute("opacity", 0.3);
+                        rect.setAttribute("fill", "lightblue");
+                        return rect;
+                    }
+                }
+                compileBoard();
+                break;
+            case TOOL_POLYGON:
+                board[nextId] = new Polygon(nextId, { x: -1, y: -1 }, { x: -1, y: -1 }, penSize, color);
+                board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
+                socket.emit("add", { type: TOOL_POLYGON, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, 
+                    content: {upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: board[nextId].getPath()} });
+                compileBoard();
+                break;
             default:
                 break;
         }
@@ -357,6 +419,31 @@ if (canEdit) {
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_ELLIPSE});
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
+                case TOOL_SELECT:
+                    selected = [];
+                    let upperLeftX = Math.min(mouseX, board[SELECT_BOX_ID].initialx);
+                    let upperLeftY = Math.min(mouseY, board[SELECT_BOX_ID].initialy);
+                    let lowerRightX = Math.max(mouseX, board[SELECT_BOX_ID].initialx);
+                    let lowerRightY = Math.max(mouseY, board[SELECT_BOX_ID].initialy);
+                    for (id in board) {
+                        if (id == SELECT_BOX_ID) {
+                            continue;
+                        }
+                        if (board[id].upperLeft.x >= upperLeftX &&
+                            board[id].upperLeft.y >= upperLeftY &&
+                            board[id].lowerRight.x <= lowerRightX &&
+                            board[id].lowerRight.y <= lowerRightY) {
+                            selected.push(id);
+                        }
+                    }
+                    delete board[SELECT_BOX_ID];
+                    compileBoard();
+                    break;
+                case TOOL_POLYGON:
+                    undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_POLYGON});
+                    socket.emit("requestNewId", { code: code });
+                    requestProcessing = true;
+                    break;
                 default:
                     break;
             }
@@ -416,6 +503,14 @@ if (canEdit) {
             event.preventDefault();
         }
     });
+    document.addEventListener('keydown', function (event) {
+        // Not tool text so that undo/redo works inside the text box and doesnt effect other things at same time
+        if (event.key === ' ' && tool != TOOL_TEXT) {
+            updatePolygon();
+            compileBoard();
+            event.preventDefault();
+        }
+    });
 }
 
 
@@ -438,7 +533,10 @@ let undoFunc = function () {
             compileBoard();
             switch (data.objType) {
                 case TOOL_PEN:
-                    socket.emit("add", { type: TOOL_PEN, code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
+                    socket.emit("add", {code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
+                    break;
+                case TOOL_POLYGON:
+                    socket.emit("add", {code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_TEXT:
                     socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, content: {text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
@@ -467,7 +565,12 @@ let undoFunc = function () {
                     board[key] = object;
                     switch (object.type) {
                         case TOOL_PEN:
-                            socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
+                            socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, 
+                                content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
+                            break;
+                        case TOOL_POLYGON:
+                            socket.emit("add", { code: code, type: TOOL_POLYGON, id: object.id, 
+                                content: {path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
                             break;
                         case TOOL_TEXT:
                             socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, content: {text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight}, size: object.size, color: object.color });
@@ -501,6 +604,9 @@ let redoFunc = function () {
                 compileBoard();
                 switch (data.objType) {
                     case TOOL_PEN:
+                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
+                        break;
+                    case TOOL_POLYGON:
                         socket.emit("add", { code: code, type: data.objType, id: data.id, content: {path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight}, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
@@ -563,6 +669,7 @@ function leaveTextMode() {
 
 function setColor(newColor){
     color = newColor;
+    opacity = newColor.slice(7,9);
     opaciter.value = parseInt( '0x' + newColor.slice(7,9),16);
     colorer.value = newColor.slice(0,7);
 }
@@ -596,6 +703,9 @@ function compileBoard() {
     } else { // draw in order
         for (let id in board) {
             let element = board[id].getSvg();
+            if(selected.includes(id)) {
+                element.setAttribute("class", "svg-selected");
+            }
             svg.appendChild(element);
         }
     }
@@ -613,6 +723,14 @@ function plotPenPoint() {
     socket.emit("update", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints: newPoints, content: {path: board[nextId].getPath(), upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight} });
     // points waiting to be broadcasted have been, so clear it
     newPoints = [];
+}
+
+function updatePolygon(){
+    // Update the path of the line by adding this point
+    board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
+    //newPoints.push();
+    socket.emit("update", { type: TOOL_POLYGON, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, newPoints:[{ x: mouseX, y: mouseY, type: "line" }], 
+        content: {path: board[nextId].getPath(), upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight} });
 }
 
 function updateShape(type){
@@ -645,6 +763,8 @@ function animate(timestamp) {
                 if(mouseDown){
                     updateShape(TOOL_ELLIPSE);
                 }
+                break;
+            case TOOL_SELECT:
                 compileBoard();
                 break;
         }  
