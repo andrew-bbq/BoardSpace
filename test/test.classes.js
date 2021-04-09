@@ -67,6 +67,10 @@ describe('Test Pen Class', () => {
         it('should have correct color', () => {
             expect(pen.color).to.equal("#FFFFFF");
         });
+
+        // it('should erase if mouse is down with eraser selected', () => {
+        //     expect(pen.path.on('mouseover')).to.be.a('function');
+        // });
     });
 
     // Test initial path data
@@ -221,6 +225,7 @@ describe('Test Text Class', () => {
         it('should have correct color', () => {
             expect(text.color).to.equal("#FFFFFF");
         });
+
     });
 
     // Testing getSVG
