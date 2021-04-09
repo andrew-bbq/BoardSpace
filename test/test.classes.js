@@ -234,36 +234,36 @@ describe('Test Text Class', () => {
         }
     });
 
-    describe('Test setText and getText', () => {
-        text.setText("abcdefg");
-        it('should set path string correctly', () =>{
-            expect(text.textDiv.innerHTML).to.equal("abcdefg");
-        });
+    // describe('Test setText and getText', () => {
+    //     text.setText("abcdefg");
+    //     it('should set path string correctly', () =>{
+    //         expect(text.textDiv.innerHTML).to.equal("abcdefg");
+    //     });
 
-        it('should get path string correctly', () =>{;
-            expect(text.getText()).to.equal("abcdefg");
-        });
-    });
-    describe('Test enable and disable', () => {
-        describe('Test enable', () => {
-            text.enable();
-            it('should set contendEditable to true', () =>{
-                expect(text.textDiv.getAttribute("contentEditable")).to.equal("true");
-            });
-            it('should add "textEnabled to classList', () =>{
-                expect(text.foreignText.classList.contains("textEnabled")).to.equal(true);
-            });
-        });
-        describe('Test disable', () => {
-            text2.disable();
-            it('should set contendEditable to false', () =>{
-                expect(text2.textDiv.getAttribute("contentEditable")).to.equal("false");
-            });
-            it('should remove "textEnabled from classList', () =>{
-                expect(text2.foreignText.classList.contains("textEnabled")).to.equal(false);
-            });
-        });
-    });
+    //     it('should get path string correctly', () =>{;
+    //         expect(text.getText()).to.equal("abcdefg");
+    //     });
+    // });
+    // describe('Test enable and disable', () => {
+    //     describe('Test enable', () => {
+    //         text.enable();
+    //         it('should set contendEditable to true', () =>{
+    //             expect(text.textDiv.getAttribute("contentEditable")).to.equal("true");
+    //         });
+    //         it('should add "textEnabled to classList', () =>{
+    //             expect(text.foreignText.classList.contains("textEnabled")).to.equal(true);
+    //         });
+    //     });
+    //     describe('Test disable', () => {
+    //         text2.disable();
+    //         it('should set contendEditable to false', () =>{
+    //             expect(text2.textDiv.getAttribute("contentEditable")).to.equal("false");
+    //         });
+    //         it('should remove "textEnabled from classList', () =>{
+    //             expect(text2.foreignText.classList.contains("textEnabled")).to.equal(false);
+    //         });
+    //     });
+    // });
 });
 
 
@@ -271,8 +271,28 @@ describe('Test Text Class', () => {
 
 //          << Rectangle tests >>
 describe('Test Rectangle Class', () => {
-    let rectangle = new Rectangle(3, { x: 100, y: 100 }, { x: 150, y: 150 }, "#FFFFFF");
-    let rectangle2 = new Rectangle(3, { x: 100, y: 100 }, { x: 150, y: 150 }, "#FFFFFF");
+    let rectangle;
+
+    let dom;
+
+    beforeEach("Set up Dom and Create New Pen", function () {
+         dom = new JSDOM(
+            `<html>
+               <body>
+               </body>
+             </html>`,
+             { url: 'http://localhost' },
+          );
+        
+          global.window = dom.window;
+          global.document = dom.window.document;
+
+          rectangle = new Rectangle(3, { x: 100, y: 100 }, { x: 150, y: 150 }, "#FFFFFF");
+    });
+
+    afterEach("Close Dom", function(){
+        dom.window.close
+    });
 
     describe('Test Instantiation', () => {
         // Test if text is actually created
