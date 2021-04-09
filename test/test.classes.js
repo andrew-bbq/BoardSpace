@@ -34,7 +34,9 @@ const Text = classes.Text;
 const Rectangle = classes.Rectangle;
 
 
-//          << pen tests >>
+////////////////////////////////////////
+//          << pen tests >>          //
+////////////////////////////////////////
 describe('Test Pen Class', () => {
 
     let pen = new Pen(1, { x: 0, y: 0 }, { x: 0, y: 0 }, 2, "#FFFFFF");
@@ -165,9 +167,10 @@ describe('Test Pen Class', () => {
 
 }); 
 
-
-//          << text tests >>
-describe('Test Pen Class', () => {
+////////////////////////////////////////
+//          << text tests >>          //
+////////////////////////////////////////
+describe('Test Text Class', () => {
     let text = new Text(2, { x: 0, y: 0 }, { x: 0, y: 0 }, 2, "#FFFFFF");
 
     describe('Test Instantiation', () => {
@@ -197,7 +200,11 @@ describe('Test Pen Class', () => {
         it('should have correct color', () =>{
             expect(text.color).to.equal("#FFFFFF");
         });
+        it('asdfsdfghfgjufydtsre', () =>{
+            expect(text.mouseOnText).to.equal(true);
+        });
     });
+
 });
 
 
