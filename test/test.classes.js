@@ -370,4 +370,10 @@ describe('Test Rectangle Class', () => {
             expect(rectangle.rect.getAttribute("height")).to.equal(Math.abs(rectangle.height).toString());
         });
     });
+
+    describe('Test updateFromCorners', () => {
+        it('should return rect on getSVG call', () =>{
+            expect(rectangle.getSvg()).to.equal(rectangle.rect);
+        });
+    });
 });
