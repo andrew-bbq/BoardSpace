@@ -234,36 +234,36 @@ describe('Test Text Class', () => {
         }
     });
 
-    // describe('Test setText and getText', () => {
-    //     text.setText("abcdefg");
-    //     it('should set path string correctly', () =>{
-    //         expect(text.textDiv.innerHTML).to.equal("abcdefg");
-    //     });
+    describe('Test setText and getText', () => {
+        it('should set path string correctly', () =>{
+            text.setText("abcdefg");
+            expect(text.textDiv.innerHTML).to.equal("abcdefg");
+        });
 
-    //     it('should get path string correctly', () =>{;
-    //         expect(text.getText()).to.equal("abcdefg");
-    //     });
-    // });
-    // describe('Test enable and disable', () => {
-    //     describe('Test enable', () => {
-    //         text.enable();
-    //         it('should set contendEditable to true', () =>{
-    //             expect(text.textDiv.getAttribute("contentEditable")).to.equal("true");
-    //         });
-    //         it('should add "textEnabled to classList', () =>{
-    //             expect(text.foreignText.classList.contains("textEnabled")).to.equal(true);
-    //         });
-    //     });
-    //     describe('Test disable', () => {
-    //         text2.disable();
-    //         it('should set contendEditable to false', () =>{
-    //             expect(text2.textDiv.getAttribute("contentEditable")).to.equal("false");
-    //         });
-    //         it('should remove "textEnabled from classList', () =>{
-    //             expect(text2.foreignText.classList.contains("textEnabled")).to.equal(false);
-    //         });
-    //     });
-    // });
+        it('should get path string correctly', () =>{;
+            expect(text.getText()).to.equal("abcdefg");
+        });
+    });
+    describe('Test enable and disable', () => {
+        describe('Test enable', () => {
+            it('should set contendEditable to true', () =>{
+                text.enable();
+                expect(text.textDiv.getAttribute("contentEditable")).to.equal("true");
+            });
+            it('should add "textEnabled to classList', () =>{
+                expect(text.foreignText.classList.contains("textEnabled")).to.equal(true);
+            });
+        });
+        describe('Test disable', () => {
+            it('should set contendEditable to false', () =>{
+                text.disable();
+                expect(text.textDiv.getAttribute("contentEditable")).to.equal("false");
+            });
+            it('should remove "textEnabled from classList', () =>{
+                expect(text.foreignText.classList.contains("textEnabled")).to.equal(false);
+            });
+        });
+    });
 });
 
 
