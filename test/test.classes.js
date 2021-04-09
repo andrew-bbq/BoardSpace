@@ -240,7 +240,8 @@ describe('Test Text Class', () => {
             expect(text.textDiv.innerHTML).to.equal("abcdefg");
         });
 
-        it('should get path string correctly', () =>{;
+        it('should get path string correctly', () =>{
+            text.setText("abcdefg");
             expect(text.getText()).to.equal("abcdefg");
         });
     });
@@ -256,10 +257,13 @@ describe('Test Text Class', () => {
         });
         describe('Test disable', () => {
             it('should set contendEditable to false', () =>{
+                text.enable();
                 text.disable();
                 expect(text.textDiv.getAttribute("contentEditable")).to.equal("false");
             });
             it('should remove "textEnabled from classList', () =>{
+                text.enable();
+                text.disable();
                 expect(text.foreignText.classList.contains("textEnabled")).to.equal(false);
             });
         });
