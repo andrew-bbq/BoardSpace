@@ -719,6 +719,9 @@ let undoFunc = function () {
             let moveObjects = move.objects;
             for (let i = 0; i < moveObjects.length; i++) {
                 let object = moveObjects[i];
+                if (!board[object.id]) {
+                    continue;
+                }
                 movedObjects.push(board[object.id]);
                 board[object.id] = moveObjects[i];
                 socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
@@ -803,6 +806,9 @@ let redoFunc = function () {
                 let moveObjects = move.objects;
                 for (let i = 0; i < moveObjects.length; i++) {
                     let object = moveObjects[i];
+                    if (!board[object.id]) {
+                        continue;
+                    }
                     movedObjects.push(board[object.id]);
                     board[object.id] = moveObjects[i];
                     socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
