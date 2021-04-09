@@ -57,6 +57,7 @@ $(".tool").click(function () {
             break;
         case "Ellipse":
             tool = TOOL_ELLIPSE;
+            resetSelection();
             leaveTextMode();
             break;
         case "Select":
@@ -777,7 +778,7 @@ let redoFunc = function () {
                     socket.emit("updatePosition", {code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight});
                 }
                 compileBoard();
-                undoStack.push({type: "move", movedObjects});
+                undoStack.push({type: "move", objects: movedObjects});
                 break;
             default:
                 break;
@@ -855,6 +856,7 @@ function compileBoard() {
         }
     } else { // draw in order
         for (let id in board) {
+            
             if(selected.includes(id)) {
                 board[id].selected = true;
             } else {

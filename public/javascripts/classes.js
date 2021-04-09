@@ -368,7 +368,7 @@ class Rectangle extends DrawingObject {
 
 class Polygon extends DrawingObject {
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_POLYGON);
+        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_POLYGON);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -403,7 +403,7 @@ class Polygon extends DrawingObject {
         };
     }
     getSvg() {
-        return this.path;
+        return super.applyTransformations(this.path);
     };
 
     // Set the path string
@@ -462,16 +462,24 @@ class Polygon extends DrawingObject {
             this.lowerRight.y = point.y;
         }
     }
+
+    clone() {
+        let copy = new Polygon(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
+        copy.position = {x: this.position.x, y: this.position.y};
+        copy.path = this.path;
+        return copy;
+    }
 }
 class Ellipse extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_ELLIPSE);
+        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_ELLIPSE);
         this.color = color;
         this.x = upperLeft.x + Math.abs(lowerRight.x - upperLeft.x) / 2;
         this.y = upperLeft.y + Math.abs(lowerRight.y - upperLeft.y) / 2;
         this.rx = 1;
         this.ry = 1;
         // Set up the SVG path
+        
         this.ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
         this.ellipse.setAttribute("fill", color);
         this.ellipse.setAttribute("cx", this.x);
@@ -533,6 +541,13 @@ class Ellipse extends DrawingObject {
     }
 
     getSvg() {
-        return this.ellipse;
+        return super.applyTransformations(this.ellipse);
+    }
+
+    clone() {
+        let copy = new Ellipse(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
+        copy.position = {x: this.position.x, y: this.position.y};
+        copy.updateFromCorners(this.upperLeft,this.lowerRight);
+        return copy;
     }
 }
