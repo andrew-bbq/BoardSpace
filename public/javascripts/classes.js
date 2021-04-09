@@ -156,8 +156,7 @@ class Text extends DrawingObject {
         // http://jsfiddle.net/brx3xm59/
         this.foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         this.textDiv = document.createElement("div");
-        this.textNode = document.createTextNode("Click to edit");
-        this.textDiv.appendChild(this.textNode);
+        this.textDiv.innerHTML = "Click to edit";
         this.textDiv.setAttribute("contentEditable", "true");
         this.textDiv.setAttribute("width", "auto");
         this.foreignText.setAttribute("width", 300 + "px");
@@ -173,17 +172,15 @@ class Text extends DrawingObject {
                 id: id,
                 x: upperLeft.x,
                 y: upperLeft.y,
-                content: div.target.textContent,
+                content: div.target.innerHTML,
                 size: this.size,
                 color: this.color
             });
         });
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
-        //this.textDiv.style = "display: inline-block;";
         this.textDiv.classList.add("unselectable");
         this.foreignText.classList.add("textEnabled");
         this.foreignText.setAttribute("transform", "translate(" + upperLeft.x + " " + upperLeft.y + ")");
-        //svg.appendChild(this.foreignText);
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
             if (tool == TOOL_TEXT) {
@@ -219,12 +216,12 @@ class Text extends DrawingObject {
 
     // Set the path string
     setText(text) {
-        this.textNode.textContent = text;
+        this.textDiv.innerHTML = text;
     }
 
     // Get the path string
     getText() {
-        return this.textNode.textContent;
+        return this.textDiv.innerHTML;
     }
 
     enable() {
