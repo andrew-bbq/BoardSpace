@@ -275,9 +275,13 @@ socket.on('erase', function (data) {
 
 socket.on("updatePosition", data => {
     if (board[data.id]) {
-        board[data.id].position = data.position;
-        board[data.id].upperLeft = data.upperLeft;
-        board[data.id].lowerRight = data.lowerRight;
+        if (data.type == TOOL_RECTANGLE || data.type == TOOL_ELLIPSE) {
+            board[data.id].updateFromCorners(data.upperLeft, data.lowerRight);
+        } else {
+            board[data.id].position = data.position;
+            board[data.id].upperLeft = data.upperLeft;
+            board[data.id].lowerRight = data.lowerRight;
+        }
     }
 });
 
@@ -629,7 +633,7 @@ let undoFunc = function () {
                     socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
             }
-            socket.emit("updatePosition", { code: code, id: data.object.id, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
+            socket.emit("updatePosition", { code: code, type: data.object.type, id: data.object.id, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
             break;
         case "clear":
             // Add back all of the things deleted with the clear
@@ -668,7 +672,7 @@ let undoFunc = function () {
                             socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                             break;
                     }
-                    socket.emit("updatePosition", { code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
+                    socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
                 }
             }
             compileBoard();
@@ -705,7 +709,7 @@ let undoFunc = function () {
                         socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                         break;
                 }
-                socket.emit("updatePosition", { code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
+                socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
             }
             compileBoard();
             break;
@@ -717,7 +721,7 @@ let undoFunc = function () {
                 let object = moveObjects[i];
                 movedObjects.push(board[object.id]);
                 board[object.id] = moveObjects[i];
-                socket.emit("updatePosition", { code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
+                socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
             }
             compileBoard();
             redoStack.push({ type: "move", objects: movedObjects });
@@ -754,7 +758,7 @@ let redoFunc = function () {
                         socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                         break;
                 }
-                socket.emit("updatePosition", { code: code, id: data.object.id, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
+                socket.emit("updatePosition", { code: code, id: data.object.id, type: data.object.type, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
                 break;
             case "erase":
                 delete board[data.id];
@@ -801,7 +805,7 @@ let redoFunc = function () {
                     let object = moveObjects[i];
                     movedObjects.push(board[object.id]);
                     board[object.id] = moveObjects[i];
-                    socket.emit("updatePosition", { code: code, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
+                    socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
                 }
                 compileBoard();
                 undoStack.push({ type: "move", objects: movedObjects });
@@ -978,17 +982,20 @@ function animate(timestamp) {
                     selection.lowerRight.y += transY;
                     for (let i = 0; i < selected.length; i++) {
                         let id = selected[i];
-                        board[id].position.x += transX;
-                        board[id].position.y += transY;
                         board[id].upperLeft.x += transX;
                         board[id].upperLeft.y += transY;
                         board[id].lowerRight.x += transX;
                         board[id].lowerRight.y += transY;
-
-                        socket.emit("updatePosition", { code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight });
+                        if (board[id].type == TOOL_RECTANGLE || board[id].type == TOOL_ELLIPSE){
+                            board[id].updateFromCorners(board[id].upperLeft, board[id].lowerRight);
+                            socket.emit("update", { type: board[id].type, code: code, id: id, color: board[id].color, content: { upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight } });
+                        } else {
+                            board[id].position.x += transX;
+                            board[id].position.y += transY;
+                            socket.emit("updatePosition", { code: code, id: id, type: board[id].type, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight });
+                        }
                     }
                 }
-
                 break;
         }
         compileBoard();

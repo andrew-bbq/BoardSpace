@@ -71,8 +71,8 @@ io.on("connection", (socket) => {
 
     socket.on("updatePosition", function (data) {
         boards[data.code][data.id].position = data.position;
-        boards[data.code][data.id].upperLeft = data.upperLeft;
-        boards[data.code][data.id].lowerRight = data.lowerRight;
+        boards[data.code][data.id].data.content.upperLeft = data.upperLeft;
+        boards[data.code][data.id].data.content.lowerRight = data.lowerRight;
         socket.to(data.code).emit("updatePosition", data);
     });
 

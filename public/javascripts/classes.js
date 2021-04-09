@@ -317,7 +317,13 @@ class Rectangle extends DrawingObject {
     clone() {
         let copy = new Rectangle(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
         copy.position = {x: this.position.x, y: this.position.y};
-        copy.rect = this.rect;
+        let copyRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        copyRect.setAttribute("fill", color);
+        copyRect.setAttribute("x", this.x);
+        copyRect.setAttribute("y", this.y);
+        copyRect.setAttribute("width", this.width);
+        copyRect.setAttribute("height", this.height);
+        copy.rect = copyRect;
         return copy;
     }
 
@@ -534,8 +540,8 @@ class Ellipse extends DrawingObject {
         this.y = upperLeft.y + Math.abs(lowerRight.y - upperLeft.y) / 2;
         this.rx = Math.abs(lowerRight.x - upperLeft.x) / 2;
         this.ry = Math.abs(lowerRight.y - upperLeft.y) / 2;
-        this.ellipse.setAttribute("x", this.x);
-        this.ellipse.setAttribute("y", this.y);
+        this.ellipse.setAttribute("cx", this.x);
+        this.ellipse.setAttribute("cy", this.y);
         this.ellipse.setAttribute("rx", Math.abs(this.rx));
         this.ellipse.setAttribute("ry", Math.abs(this.ry));
     }
@@ -547,7 +553,13 @@ class Ellipse extends DrawingObject {
     clone() {
         let copy = new Ellipse(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
         copy.position = {x: this.position.x, y: this.position.y};
-        copy.ellipse = this.ellipse;
+        let copyEllipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        copyEllipse.setAttribute("cx", this.x);
+        copyEllipse.setAttribute("cy", this.y);
+        copyEllipse.setAttribute("rx", Math.abs(this.rx));
+        copyEllipse.setAttribute("ry", Math.abs(this.ry));
+        copyEllipse.setAttribute("fill", color);
+        copy.ellipse = copyEllipse;
         return copy;
     }
 }
