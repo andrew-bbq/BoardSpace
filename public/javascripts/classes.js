@@ -215,7 +215,6 @@ class Text extends DrawingObject {
 
 
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
-        this.textDiv.classList.add("unselectable");
         this.textDiv.classList.add("textWrap");
         this.foreignText.classList.add("textEnabled");
         this.foreignText.appendChild(this.textDiv);
@@ -272,10 +271,12 @@ class Text extends DrawingObject {
 
     enable() {
         this.textDiv.setAttribute("contentEditable", "true");
+        this.textDiv.classList.remove("unselectable");
         this.foreignText.classList.add("textEnabled");
     }
     disable() {
         this.textDiv.setAttribute("contentEditable", "false");
+        this.textDiv.classList.add("unselectable");
         this.foreignText.classList.remove("textEnabled");
     }
 }

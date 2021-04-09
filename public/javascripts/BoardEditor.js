@@ -763,7 +763,9 @@ function compileBoard() {
     if (textModeEnabled) {
         let range = document.createRange();
         if(board[textEditingID]){
-            if(selectedNode == 0)
+            if(!(board[textEditingID].foreignText.firstChild.childNodes[0]))
+                range.setStart(board[textEditingID].foreignText.firstChild, 0);
+            else if(selectedNode == 0)
                 range.setStart(board[textEditingID].foreignText.firstChild.childNodes[selectedNode], selectOffset);
             else
                 range.setStart(board[textEditingID].foreignText.firstChild.childNodes[selectedNode].childNodes[0], selectOffset);
@@ -772,7 +774,6 @@ function compileBoard() {
             sel.addRange(range);
             board[textEditingID].foreignText.firstChild.focus();
         }
-
     }
 
     canvas = document.getElementById("drawing-svg");
@@ -809,11 +810,13 @@ function animate(timestamp) {
                 if(mouseDown && !mouseLeft && board[nextId]){
                     plotPenPoint();
                 }   
+                compileBoard();
                 break;  
             case TOOL_RECTANGLE:
                 if(mouseDown){
                     updateRect();
                 }
+                compileBoard();
                 break;
             case TOOL_SELECT:
                 if (isEditing) {
@@ -837,10 +840,10 @@ function animate(timestamp) {
                         socket.emit("updatePosition", {code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight});
                     }
                 }
+                compileBoard();
 
                 break;
         }  
-        compileBoard();
         poll = POLL_RATE;
     }
     window.requestAnimationFrame(animate);
