@@ -14,6 +14,7 @@ let requestProcessing = false;
 let mouseOnText = false;
 let isDrawing = false;
 let textModeEnabled = false;
+let textEditingID = 0;
 let selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
 let previousMouse = {x: 0, y: 0};
 let isEditing = false;
@@ -711,6 +712,22 @@ function clearBoard() {
 
 // Draw the drawingObjects on the board
 function compileBoard() {
+    // save editing spot 
+    let sel = window.getSelection();
+    let selectedNode = 0;
+    let selectedRange = null;
+    let selectOffset = 0;
+    if (sel.rangeCount > 0) {
+        selectedRange = sel.getRangeAt(0);
+        selectOffset = selectedRange.startOffset;
+    }
+    if (textModeEnabled) {
+        if(board[textEditingID]) 
+            for(let i = 1; i < board[textEditingID].foreignText.firstChild.childNodes.length; i++) 
+                if (board[textEditingID].foreignText.firstChild.childNodes[i].childNodes[0] == sel.getRangeAt(0).commonAncestorContainer)
+                    selectedNode = i;
+    }
+
     // clear board
     while (svg.lastChild) {
         svg.removeChild(svg.lastChild);
@@ -740,6 +757,24 @@ function compileBoard() {
             svg.appendChild(element);
         }
     }
+
+    // refocus on editing spot
+    // https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
+    if (textModeEnabled) {
+        let range = document.createRange();
+        if(board[textEditingID]){
+            if(selectedNode == 0)
+                range.setStart(board[textEditingID].foreignText.firstChild.childNodes[selectedNode], selectOffset);
+            else
+                range.setStart(board[textEditingID].foreignText.firstChild.childNodes[selectedNode].childNodes[0], selectOffset);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            board[textEditingID].foreignText.firstChild.focus();
+        }
+
+    }
+
     canvas = document.getElementById("drawing-svg");
     canvas.setAttribute('height', BOARD_HEIGHT + "px");
     canvas.setAttribute('width', BOARD_WIDTH + "px");
@@ -804,7 +839,7 @@ function animate(timestamp) {
                         socket.emit("updatePosition", {code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight});
                     }
                 }
-                compileBoard();
+
                 break;
         }  
         poll = POLL_RATE;

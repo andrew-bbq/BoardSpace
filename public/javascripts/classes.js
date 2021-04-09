@@ -208,6 +208,10 @@ class Text extends DrawingObject {
                 color: updateColor
             });
         });
+        
+        this.textDiv.addEventListener('focus', function (div) {
+            textEditingID = id;
+        });
 
 
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
