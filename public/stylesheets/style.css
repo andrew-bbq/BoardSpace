@@ -22,10 +22,15 @@ a {
 
 .svg-selected {
   border: 3px dashed #58f;
+  outline: 3px dashed #58f;
 }
 
 .textEnabled {
   border: 3px dashed #58f;
+}
+
+.textWrap {
+  white-space: pre-wrap;
 }
 
 .unselectable {
@@ -35,7 +40,6 @@ a {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  white-space: pre-wrap;
 }
 
 svg * { pointer-events: all;}
