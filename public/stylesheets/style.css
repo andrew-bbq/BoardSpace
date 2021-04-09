@@ -29,6 +29,12 @@ a {
   border: 3px dashed #58f;
 }
 
+.textWrap {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
 .unselectable {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -36,7 +42,6 @@ a {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  white-space: pre-wrap;
 }
 
 svg * { pointer-events: all;}
