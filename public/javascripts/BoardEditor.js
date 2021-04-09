@@ -48,6 +48,8 @@ $(".tool").click(function () {
             break;
         case "Ellipse":
             tool = TOOL_ELLIPSE;
+            leaveTextMode();
+            break;
         case "Select":
             tool = TOOL_SELECT;
             leaveTextMode();
@@ -102,6 +104,7 @@ socket.on('joinData', function (data) {
                 if (sentBoard[id].data.content && sentBoard[id].data.content.path) {
                     newBoard[id].setPath(sentBoard[id].data.content.path);
                 }
+                break;
         }
     }
     board = newBoard;
@@ -170,7 +173,6 @@ socket.on("update", function (data) {
     if (nextId == data.id) {
         return;
     }
-    console.log(data.type);
     switch (data.type) {
         case TOOL_PEN:
             // If this board already has this Pen object, then update it accordingly
@@ -419,6 +421,7 @@ if (canEdit) {
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_ELLIPSE});
                     socket.emit("requestNewId", { code: code });
                     requestProcessing = true;
+                    break;
                 case TOOL_SELECT:
                     selected = [];
                     let upperLeftX = Math.min(mouseX, board[SELECT_BOX_ID].initialx);
@@ -505,7 +508,7 @@ if (canEdit) {
     });
     document.addEventListener('keydown', function (event) {
         // Not tool text so that undo/redo works inside the text box and doesnt effect other things at same time
-        if (event.key === ' ' && tool != TOOL_TEXT) {
+        if (event.key === ' ' && tool == TOOL_POLYGON && mouseDown) {
             updatePolygon();
             compileBoard();
             event.preventDefault();
@@ -595,7 +598,6 @@ $("#undo").click(undoFunc);
 let redoFunc = function () {
     if (redoStack.length != 0) {
         data = redoStack[redoStack.length - 1];
-        console.log(data.type);
         switch (data.type) {
             case "add":
                 // find position in board array?
@@ -763,6 +765,7 @@ function animate(timestamp) {
                 if(mouseDown){
                     updateShape(TOOL_ELLIPSE);
                 }
+                compileBoard();
                 break;
             case TOOL_SELECT:
                 compileBoard();
