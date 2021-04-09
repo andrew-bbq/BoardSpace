@@ -69,13 +69,23 @@ io.on("connection", (socket) => {
         boards[data.code][data.id] = { type: data.type, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
     });
 
-    socket.on("updateTransform", function (data) {
-
+    socket.on("updatePosition", function (data) {
+        boards[data.code][data.id].position = data.position;
+        boards[data.code][data.id].data.content.upperLeft = data.upperLeft;
+        boards[data.code][data.id].data.content.lowerRight = data.lowerRight;
+        socket.to(data.code).emit("updatePosition", data);
     });
 
     socket.on('erase', function (data) {
         delete boards[data.code][data.id];
         socket.to(data.code).emit('erase', data);
+    });
+
+    socket.on("multiErase", function(data) {
+        for(let i = 0; i < data.ids.length; i++) {
+            delete boards[data.code][data.ids[i]];
+            socket.to(data.code).emit("erase", {id: data.ids[i]})
+        }
     });
 
     //  requestNewId
