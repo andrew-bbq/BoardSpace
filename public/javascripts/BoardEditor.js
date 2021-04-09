@@ -839,6 +839,7 @@ function animate(timestamp) {
                         socket.emit("updatePosition", {code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight});
                     }
                 }
+                compileBoard();
 
                 break;
         }  
