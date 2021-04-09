@@ -1,6 +1,5 @@
 const DEF_ROTATE = "0 0 0";
 const DEF_SCALE = "0 0";
-const constants = require('./constants');
 
 class DrawingObject {
     constructor(id, position, rotation, scale, upperLeft, lowerRight, type) {
@@ -564,4 +563,3 @@ class Ellipse extends DrawingObject {
         return copy;
     }
 }
-module.exports = {Pen, Text, Rectangle};
