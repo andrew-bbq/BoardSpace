@@ -809,13 +809,11 @@ function animate(timestamp) {
                 if(mouseDown && !mouseLeft && board[nextId]){
                     plotPenPoint();
                 }   
-                compileBoard();
                 break;  
             case TOOL_RECTANGLE:
                 if(mouseDown){
                     updateRect();
                 }
-                compileBoard();
                 break;
             case TOOL_SELECT:
                 if (isEditing) {
@@ -839,10 +837,10 @@ function animate(timestamp) {
                         socket.emit("updatePosition", {code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight});
                     }
                 }
-                compileBoard();
 
                 break;
         }  
+        compileBoard();
         poll = POLL_RATE;
     }
     window.requestAnimationFrame(animate);
