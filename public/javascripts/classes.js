@@ -334,8 +334,6 @@ class Polygon extends DrawingObject {
         this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         this.path.setAttribute("stroke-width", this.size);
         this.path.setAttribute("fill", color);
-        //this.path.setAttribute("style", "pointer-events: all;");
-        this.path.setAttribute("stroke", this.color);
         this.path.setAttribute("stroke-linecap", "round");
         this.path.setAttribute("stroke-linejoin", "round");
         this.path.setAttribute("d", "");
