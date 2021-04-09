@@ -81,6 +81,13 @@ io.on("connection", (socket) => {
         socket.to(data.code).emit('erase', data);
     });
 
+    socket.on("multiErase", function(data) {
+        for(let i = 0; i < data.ids.length; i++) {
+            delete boards[data.code][data.ids[i]];
+            socket.to(data.code).emit("erase", {id: data.ids[i]})
+        }
+    });
+
     //  requestNewId
     //  Get a new ID for the client to attach to a new drawing object, done
     //    on server side so that each user's drawings increments the nextId.

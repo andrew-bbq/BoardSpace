@@ -63,6 +63,7 @@ $(".tool").click(function () {
 });
 
 function resetSelection() {
+    isEditing = false;
     selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
     selected = [];
 }
@@ -101,6 +102,15 @@ socket.on('joinData', function (data) {
                 newBoard[id] = new Rectangle(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.color);
                 newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
                 break;
+        }
+        if (sentBoard[id].position) {
+            newBoard[id].position = sentBoard[id].position;
+        }
+        if (sentBoard[id].upperLeft) {
+            newBoard[id].upperLeft = sentBoard[id].upperLeft;
+        }
+        if (sentBoard[id].lowerRight) {
+            newBoard[id].lowerRight = sentBoard[id].lowerRight;
         }
     }
     board = newBoard;
@@ -381,12 +391,12 @@ if (canEdit) {
                     requestProcessing = true;
                     break;
                 case TOOL_SELECT:
-                    selected = [];
-                    selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
                     if (isEditing) {
                         isEditing = false;
                         break;
                     }
+                    selected = [];
+                    selection = {upperLeft: {x:0, y:0}, lowerRight: {x:0, y:0}};
                     selection.upperLeft.x = Math.min(mouseX, board[SELECT_BOX_ID].initialx);
                     selection.upperLeft.y = Math.min(mouseY, board[SELECT_BOX_ID].initialy);
                     selection.lowerRight.x = Math.max(mouseX, board[SELECT_BOX_ID].initialx);
@@ -462,6 +472,7 @@ if (canEdit) {
             for (let i = 0; i < selected.length; i++) {
                 delete board[selected[i]];
             }
+            socket.emit("multiErase",{code: code, ids: selected});
             selected = [];
         }
 
@@ -700,6 +711,10 @@ function animate(timestamp) {
                     let transY = mouseY - previousMouse.y;
                     previousMouse.x = mouseX;
                     previousMouse.y = mouseY;
+                    selection.upperLeft.x += transX;
+                    selection.upperLeft.y += transY;
+                    selection.lowerRight.x += transX;
+                    selection.lowerRight.y += transY;
                     for(let i = 0; i < selected.length; i++) {
                         let id = selected[i];
                         board[id].position.x += transX;
@@ -708,6 +723,7 @@ function animate(timestamp) {
                         board[id].upperLeft.y += transY;
                         board[id].lowerRight.x += transX;
                         board[id].lowerRight.y += transY;
+                        
                         socket.emit("updatePosition", {code: code, id: id, position: board[id].position, upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight});
                     }
                 }
