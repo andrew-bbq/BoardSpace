@@ -29,7 +29,10 @@ copyProps(window, global);
 // ============== CLASS TESTING ==============
 //          << setting classes >>
 const classes = require('../public/javascripts/classes');
-const Pen = classes.Pen
+const Pen = classes.Pen;
+const Text = classes.Text;
+const Rectangle = classes.Rectangle;
+
 
 //          << pen tests >>
 describe('Test Pen Class', () => {
@@ -161,3 +164,43 @@ describe('Test Pen Class', () => {
     });
 
 }); 
+
+
+//          << text tests >>
+describe('Test Pen Class', () => {
+    let text = new Text(2, { x: 0, y: 0 }, { x: 0, y: 0 }, 2, "#FFFFFF");
+
+    describe('Test Instantiation', () => {
+        // Test if text is actually created
+        it('should not be null', () =>{
+            if(text == null){
+                throw "Text is NULL";
+            }
+        });
+
+        it('should have correct id', () =>{
+            expect(text.id).to.equal(2);
+        });
+
+        it('should have correct upperLeft', () =>{
+            expect(text.upperLeft).to.deep.equal({ x: 0, y: 0 });
+        });
+
+        it('should have correct lowerRight', () =>{
+            expect(text.lowerRight).to.deep.equal({ x: 0, y: 0 });
+        });
+
+        it('should have correct size', () =>{
+            expect(text.size).to.equal(2);
+        });
+
+        it('should have correct color', () =>{
+            expect(text.color).to.equal("#FFFFFF");
+        });
+    });
+});
+
+
+
+
+//          << Rectangle tests >>

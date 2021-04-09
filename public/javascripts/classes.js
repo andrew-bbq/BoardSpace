@@ -147,7 +147,7 @@ class Text extends DrawingObject {
     //  size: font size
     //  color: text color
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, constants.TOOL_TEXT);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -312,4 +312,4 @@ class Rectangle extends DrawingObject {
         return this.rect;
     }
 }
-module.exports = {Pen}
+module.exports = {Pen, Text, Rectangle};
