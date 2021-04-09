@@ -1,4 +1,5 @@
 const DEF_ROTATE = "0 0 0";
+const DEF_POS = "0 0 0";
 const DEF_SCALE = "0 0";
 
 class DrawingObject {
@@ -10,24 +11,9 @@ class DrawingObject {
         this.upperLeft = upperLeft;
         this.lowerRight = lowerRight;
         this.type = type;
-        this.selected = false;
     }
 
     getSvg() {
-
-    }
-
-    applyTransformations(svg) {
-        svg.setAttribute("transform", "translate("+Number(this.position.x)+","+Number(this.position.y)+")");
-        if (this.selected) {
-            svg.classList.add("svg-selected");
-        } else {
-            svg.classList.remove("svg-selected");
-        }
-        return svg;
-    }
-
-    clone() {
 
     }
 }
@@ -47,7 +33,7 @@ class Pen extends DrawingObject {
     //  lowerRight: bounding rectangle lower right corner
     //  size: pen stroke-width
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -84,15 +70,8 @@ class Pen extends DrawingObject {
         };
     }
 
-    clone() {
-        let copy = new Pen(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
-        copy.position = {x: this.position.x, y: this.position.y};
-        copy.path = this.path;
-        return copy;
-    }
-
     getSvg() {
-        return super.applyTransformations(this.path);
+        return this.path;
     }
 
     // Set the path string
@@ -168,7 +147,7 @@ class Text extends DrawingObject {
     //  size: font size
     //  color: text color
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, {x:upperLeft.x, y:upperLeft.y}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
         this.size = size;
         this.color = color;
         this.height = this.lowerRight.y - this.upperLeft.y;
@@ -208,16 +187,12 @@ class Text extends DrawingObject {
                 color: updateColor
             });
         });
-        
-        this.textDiv.addEventListener('focus', function (div) {
-            textEditingID = id;
-        });
 
 
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("unselectable");
-        this.textDiv.classList.add("textWrap");
         this.foreignText.classList.add("textEnabled");
+        this.foreignText.setAttribute("transform", "translate(" + this.upperLeft.x + " " + this.upperLeft.y + ")");
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
             if (tool == TOOL_TEXT) {
@@ -247,17 +222,8 @@ class Text extends DrawingObject {
             }
         };
     }
-
-    clone() {
-        let copy = new Text(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
-        copy.textDiv = this.textDiv;
-        copy.foreignText = this.foreignText;
-        copy.position = {x: this.position.x, y: this.position.y};
-        return copy;
-    }
-
     getSvg() {
-        return super.applyTransformations(this.foreignText);
+        return this.foreignText;
     }
 
     // Set the path string
@@ -282,7 +248,7 @@ class Text extends DrawingObject {
 
 class Rectangle extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
         this.color = color;
         this.x = upperLeft.x;
         this.y = upperLeft.y;
@@ -312,13 +278,6 @@ class Rectangle extends DrawingObject {
                     break;
             }
         };
-    }
-
-    clone() {
-        let copy = new Rectangle(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
-        copy.position = {x: this.position.x, y: this.position.y};
-        copy.rect = this.rect;
-        return copy;
     }
 
     // Add points to the path
@@ -362,7 +321,7 @@ class Rectangle extends DrawingObject {
     }
 
     getSvg() {
-        return super.applyTransformations(this.rect);
+        return this.rect;
     }
 }
 
