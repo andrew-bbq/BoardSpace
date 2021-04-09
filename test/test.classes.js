@@ -200,9 +200,6 @@ describe('Test Text Class', () => {
         it('should have correct color', () =>{
             expect(text.color).to.equal("#FFFFFF");
         });
-        it('asdfsdfghfgjufydtsre', () =>{
-            expect(text.mouseOnText).to.equal(true);
-        });
     });
 
 });
