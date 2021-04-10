@@ -6,21 +6,10 @@
   <link rel='stylesheet' href='/stylesheets/style.css' />
   <script src="/javascripts/constants.js"></script>
   <script src="/javascripts/classes.js"></script>
-  <style>
-    .tool {
-      background-color: white;
-      color: black;
-    }
-
-    .tool:active {
-      background-color: black;
-      color: white;
-    }
-  </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
-<body>
+<body style = "user-select :none">
   <a href="/">Home</a>
   <input type="hidden" id="code" value="<%=boardcode%>" />
   <h1>Board <span id="bcode">
@@ -34,16 +23,29 @@
         <% } %>
   </h2>
   <% if (canEdit) { %>
-    Pen size<input type="range" min="1" max="25" value="4" id="pensize">
-    Pen color <input type="color" id="color">
+    Size<input type="range" min="1" max="25" value="4" id="pensize">
+    Color <input type="color" id="color">
+    Opacity <input type="range" min="25" max="255" value="255" id="opacity">
     <button id="clearboard">clear board </button>
     <% } %>
 
       <div id="drawing-goes-here"><svg id="drawing-svg"></svg></div>
+      <% if (canEdit) { %>
       <div>
         <input class="tool" type="button" value="Pen" id="selected">
         <input class="tool" type="button" value="Eraser">
+        <input class="tool" type="button" value="Text">
+        <input class="tool" type="button" value="Rectangle">
+        <input class="tool" type="button" value="Ellipse">
+        <input class="tool" type="button" value="Polygon">
+        <input class="tool" type="button" value="Eyedrop">
+        <input class="tool" type="button" value="Select">
       </div>
+      <div>
+        <input id="undo" type="button" value="Undo">
+        <input id="redo" type="button" value="Redo">
+      </div>
+      <% } %>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <input type="hidden" id="canEdit" value="<%=canEdit %>" />

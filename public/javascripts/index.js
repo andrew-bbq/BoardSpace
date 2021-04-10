@@ -2,30 +2,29 @@
 
 /*  This is for switching back and forth the input box for user experience */
 const inputs = document.querySelectorAll('#OTPInput > *[id]');
-for(let j =0; j < 4; j++){
-    inputs[j].addEventListener('paste', function (e) {
-        var clipboardData, pastedData;
+document.addEventListener('paste', function (e) {
+    var clipboardData, pastedData;
 
-        // Stop data actually being pasted into div
-        e.stopPropagation();
-        e.preventDefault();
+    // Stop data actually being pasted into div
+    e.stopPropagation();
+    e.preventDefault();
 
-        // Get pasted data via clipboard API
-        clipboardData = e.clipboardData || window.clipboardData;
-        code = clipboardData.getData('text');
-        
-        for (let i =0; i < code.length; i++){
-            if(i>3){
-                break;
-            }
-            inputs[i].value = code.charAt(i);
-            updateCode();
-            if(i<3){
-                inputs[i+1].focus();
-            }  
+    // Get pasted data via clipboard API
+    clipboardData = e.clipboardData || window.clipboardData;
+    code = clipboardData.getData('text');
+
+    for (let i = 0; i < code.length; i++) {
+        if (i > 3) {
+            break;
         }
-    });
-}
+        inputs[i].value = code.charAt(i);
+        updateCode();
+        if (i < 3) {
+            inputs[i + 1].focus();
+        }
+    }
+});
+
 inputs[0].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
         inputs[0].value = '';
@@ -40,13 +39,13 @@ inputs[0].addEventListener('input', function (event) {
 });
 inputs[1].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
-        if(inputs[1].value == ''){
+        if (inputs[1].value == '') {
             inputs[0].focus();
         }
         else {
             inputs[1].value == '';
         }
-    } 
+    }
 });
 inputs[1].addEventListener('input', function (event) {
     inputs[1].value = inputs[1].value.toUpperCase();
@@ -58,7 +57,7 @@ inputs[1].addEventListener('input', function (event) {
 
 inputs[2].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
-        if(inputs[2].value == ''){
+        if (inputs[2].value == '') {
             inputs[1].focus();
         }
         else {
@@ -76,7 +75,7 @@ inputs[2].addEventListener('input', function (event) {
 
 inputs[3].addEventListener('keydown', function (event) {
     if (event.key === "Backspace") {
-        if(inputs[3].value == ''){
+        if (inputs[3].value == '') {
             inputs[2].focus();
         }
         else {
