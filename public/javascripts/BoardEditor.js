@@ -174,6 +174,9 @@ socket.on("add", function (data) {
         case TOOL_TEXT:
             board[data.id] = new Text(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
             board[data.id].setText(data.content.text);
+            if(tool == TOOL_TEXT) {
+                board[data.id].enable();
+            }
             if (!mouseDown) {
                 socket.emit("requestNewId", { code: code });
                 requestProcessing = true;
@@ -384,6 +387,7 @@ if (canEdit) {
                     let textUpperLeft = { x: mouseX, y: mouseY };
                     let textLowerRight = { x: (mouseX + DEFAULT_TEXT_WIDTH), y: (mouseY + DEFAULT_TEXT_HEIGHT) };
                     board[nextId] = new Text(nextId, textUpperLeft, textLowerRight, penSize + 20, color);
+                    board[nextId].enable();
                     // focus on textbox soon as it is created
                     setTimeout(function () {
                         board[nextId].foreignText.firstChild.focus();
