@@ -1,6 +1,7 @@
 const DEF_ROTATE = "0 0 0";
 const DEF_POS = "0 0 0";
 const DEF_SCALE = "0 0";
+const constants = require('./constants');
 
 class DrawingObject {
     constructor(id, position, rotation, scale, upperLeft, lowerRight, type) {
@@ -33,7 +34,7 @@ class Pen extends DrawingObject {
     //  lowerRight: bounding rectangle lower right corner
     //  size: pen stroke-width
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, constants.TOOL_PEN);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -146,7 +147,7 @@ class Text extends DrawingObject {
     //  size: font size
     //  color: text color
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, constants.TOOL_TEXT);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -235,7 +236,7 @@ class Text extends DrawingObject {
 
 class Rectangle extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
+        super(id, DEF_POS, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, constants.TOOL_RECTANGLE);
         this.color = color;
         this.x = upperLeft.x;
         this.y = upperLeft.y;
@@ -311,3 +312,4 @@ class Rectangle extends DrawingObject {
         return this.rect;
     }
 }
+module.exports = {Pen, Text, Rectangle};

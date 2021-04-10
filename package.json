@@ -14,7 +14,7 @@
     "express": "~4.16.1",
     "express-session": "^1.17.1",
     "http-errors": "~1.6.3",
-    "jsdom": "^16.5.1",
+    "jsdom": "^16.5.2",
     "morgan": "~1.9.1",
     "nyc": "^15.1.0",
     "socket.io": "^4.0.0",

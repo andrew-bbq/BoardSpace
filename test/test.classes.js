@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 
 // ============== CLASS TESTING ==============
 //          << setting classes >>
-const classes = require('../public/javascripts/classes');
+const classes = require('../public/javascripts/classesTest');
 const Pen = classes.Pen;
 const Text = classes.Text;
 const Rectangle = classes.Rectangle;

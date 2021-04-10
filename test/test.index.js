@@ -8,7 +8,7 @@ const serve = require('express').static;
 var index = require("../routes/index.js");
 const assert = require('assert');
 const expect = require('chai').expect
-const request = require('supertest');
+// const request = require('supertest');
 var app = require('../app');
 app.use(index.router);
 
