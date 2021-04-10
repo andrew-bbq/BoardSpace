@@ -354,8 +354,8 @@ class Rectangle extends DrawingObject {
 
     // Add points to the path
     updateShape(mouseX, mouseY) {
-        this.width = mouseX - this.x;
-        this.height = mouseY - this.y;
+        this.width = Math.abs(mouseX - this.x);
+        this.height = Math.abs(mouseY - this.y);
         if (mouseX < this.x) {
             this.rect.setAttribute("x", mouseX);
             this.upperLeft.x = mouseX;
