@@ -123,7 +123,10 @@ io.on("connection", (socket) => {
             return;
         }
         nextIds[data.code]++;
-        boards[data.code][data.id].isEditing = false;
+        if(boards[data.code][data.id]){
+            boards[data.code][data.id].isEditing = false;
+        }
+        
         socket.emit("newId", { newId: nextIds[data.code]});
         socket.to(data.code).emit("completeEdit", {id:data.id});
     });

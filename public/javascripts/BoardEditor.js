@@ -476,7 +476,9 @@ if (canEdit) {
     document.onmouseup = (event) => {
         if (mouseDown) {
             // if pen is selected tool
-            board[nextId].isEditing = false;
+            if(board[nextId]){
+                board[nextId].isEditing = false;
+            }
             switch (tool) {
                 case TOOL_PEN:
                     // get a new id for nextId
@@ -578,15 +580,17 @@ if (canEdit) {
             undoFunc();
             event.preventDefault();
         }
-        if (event.key == "Delete" && selected.length > 0) {
+        if ((event.key == "Delete" || event.key == "Backspace") && selected.length > 0) {
             let undoObjects = [];
             for (let i = 0; i < selected.length; i++) {
+                if(board[selected[i]] && board[selected[i]].isEditing){
+                    continue;
+                }
                 undoObjects.push(board[selected[i]]);
                 delete board[selected[i]];
             }
             socket.emit("multiErase", { code: code, ids: selected });
             undoStack.push({ type: "multierase", objects: undoObjects });
-            console.log(undoStack);
             selected = [];
         }
 
@@ -642,7 +646,6 @@ let undoFunc = function () {
                     socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
                 case TOOL_ELLIPSE:
-                    console.log("undo erase ellipse");
                     socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
             }

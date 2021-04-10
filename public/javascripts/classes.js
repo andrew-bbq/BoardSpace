@@ -187,7 +187,7 @@ class Text extends DrawingObject {
         this.foreignText.setAttribute("width", this.width + "px");
 
         this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
-
+        this.isEditing = false;
         // define variables for updating
         let updateUpperLeft = this.upperLeft;
         let updateLowerRight = this.lowerRight;
