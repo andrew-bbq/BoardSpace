@@ -17,6 +17,14 @@ const socketapi = {
 let boards = {};
 let nextIds = {};
 
+function validateCode(code, socket) {
+    if (boards[code]) {
+        return false;
+    }
+    socket.emit("begone");
+    return true;
+}
+
 // socket io logic goes here
 io.on("connection", (socket) => {
 
@@ -50,6 +58,9 @@ io.on("connection", (socket) => {
     //          text: the new text in the textObject
     //      }
     socket.on("update", function (data) {
+        if(validateCode(data.code, socket)){
+            return;
+        }
         socket.to(data.code).emit('update', data);
         boards[data.code][data.id].data.content = data.content;
     });
@@ -65,11 +76,17 @@ io.on("connection", (socket) => {
     //          text: the text in the textObject
     //      }
     socket.on("add", function (data) {
+        if(validateCode(data.code, socket)){
+            return;
+        }
         socket.to(data.code).emit('add', data);
         boards[data.code][data.id] = { type: data.type, isEditing:true, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
     });
 
     socket.on("updatePosition", function (data) {
+        if(validateCode(data.code, socket)){
+            return;
+        }
         boards[data.code][data.id].position = data.position;
         boards[data.code][data.id].data.content.upperLeft = data.upperLeft;
         boards[data.code][data.id].data.content.lowerRight = data.lowerRight;
@@ -77,11 +94,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on('erase', function (data) {
+        if(validateCode(data.code, socket)){
+            return;
+        }
         delete boards[data.code][data.id];
         socket.to(data.code).emit('erase', data);
     });
 
     socket.on("multiErase", function(data) {
+        if(validateCode(data.code, socket)){
+            return;
+        }
         for(let i = 0; i < data.ids.length; i++) {
             delete boards[data.code][data.ids[i]];
             socket.to(data.code).emit("erase", {id: data.ids[i]})
@@ -96,6 +119,9 @@ io.on("connection", (socket) => {
     //          code: the code for the board being drawn on
     //      }
     socket.on("requestNewId", function (data) {
+        if(validateCode(data.code, socket)){
+            return;
+        }
         nextIds[data.code]++;
         boards[data.code][data.id].isEditing = false;
         socket.emit("newId", { newId: nextIds[data.code]});
@@ -110,6 +136,9 @@ io.on("connection", (socket) => {
     //      }
     socket.on("clearBoard", function (data) {
         let code = data.code;
+        if(validateCode(code, socket)){
+            return;
+        }
         socket.to(code).emit('clearBoard');
         boards[code] = {};
     });

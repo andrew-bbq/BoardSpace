@@ -72,6 +72,10 @@ $(".tool").click(function () {
     $(this).attr("id", "selected");
 });
 
+socket.on("begone", function() {
+    window.location.replace("/");
+});
+
 function resetSelection() {
     isEditing = false;
     selection = { upperLeft: { x: 0, y: 0 }, lowerRight: { x: 0, y: 0 } };
