@@ -117,7 +117,7 @@ socket.on('joinData', function (data) {
                 newBoard[id].updateFromCorners(sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight);
                 break;
             case TOOL_POLYGON:
-                newBoard[id] = new Polygon(id, sentBoard[id].data.content.upperleft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
+                newBoard[id] = new Polygon(id, sentBoard[id].data.content.upperLeft, sentBoard[id].data.content.lowerRight, sentBoard[id].data.size, sentBoard[id].data.color);
                 if (sentBoard[id].data.content && sentBoard[id].data.content.path) {
                     newBoard[id].setPath(sentBoard[id].data.content.path);
                 }
