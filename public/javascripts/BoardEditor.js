@@ -315,17 +315,7 @@ socket.on('newId', function (data) {
 // get svg
 let svg = document.getElementById("drawing-svg");
 // does the user have editing access
-let canEdit = document.getElementById("canEdit").getAttribute("canEdit") == "true";
-
-document.getElementById('Copy').onclick = copy;
-function copy() {
-    navigator.clipboard.writeText(code).then(function () {
-    }, function () {
-        /* clipboard write failed */
-        console.log("failed to copy to clipboard")
-    });
-}
-
+let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
 // If the user has edit access, define the board editing listeners
 if (canEdit) {
     let pensizer = document.getElementById("pensize");
