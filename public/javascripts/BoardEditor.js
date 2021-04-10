@@ -261,11 +261,19 @@ socket.on('clearBoard', function () {
     clearBoard();
 });
 
+socket.on('completeEdit', function (data){
+    if(board[data.id]){
+        board[data.id].isEditing = false;
+    }
+});
+
 function erase(id) {
-    undoStack.push({ type: "erase", id: id, object: board[id].clone(), objType: board[id].type });
-    delete board[id];
-    compileBoard();
-    socket.emit('erase', { code: code, id: id });
+    if(board[id] && !board[id].isEditing){
+        undoStack.push({ type: "erase", id: id, object: board[id].clone(), objType: board[id].type });
+        delete board[id];
+        compileBoard();
+        socket.emit('erase', { code: code, id: id });
+    }
 }
 
 socket.on('erase', function (data) {
@@ -464,22 +472,23 @@ if (canEdit) {
     document.onmouseup = (event) => {
         if (mouseDown) {
             // if pen is selected tool
+            board[nextId].isEditing = false;
             switch (tool) {
                 case TOOL_PEN:
                     // get a new id for nextId
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_PEN });
-                    socket.emit("requestNewId", { code: code });
+                    socket.emit("requestNewId", { code: code, id:nextId});
                     requestProcessing = true;
                     isDrawing = false;
                     break;
                 case TOOL_RECTANGLE:
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_RECTANGLE });
-                    socket.emit("requestNewId", { code: code });
+                    socket.emit("requestNewId", { code: code, id:nextId });
                     requestProcessing = true;
                     break;
                 case TOOL_ELLIPSE:
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_ELLIPSE });
-                    socket.emit("requestNewId", { code: code });
+                    socket.emit("requestNewId", { code: code, id:nextId });
                     requestProcessing = true;
                     break;
                 case TOOL_SELECT:
@@ -512,7 +521,7 @@ if (canEdit) {
                     break;
                 case TOOL_POLYGON:
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_POLYGON });
-                    socket.emit("requestNewId", { code: code });
+                    socket.emit("requestNewId", { code: code, id:nextId});
                     requestProcessing = true;
                     break;
                 default:

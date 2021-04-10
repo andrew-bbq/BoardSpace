@@ -66,7 +66,7 @@ io.on("connection", (socket) => {
     //      }
     socket.on("add", function (data) {
         socket.to(data.code).emit('add', data);
-        boards[data.code][data.id] = { type: data.type, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
+        boards[data.code][data.id] = { type: data.type, isEditing:true, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
     });
 
     socket.on("updatePosition", function (data) {
@@ -97,7 +97,9 @@ io.on("connection", (socket) => {
     //      }
     socket.on("requestNewId", function (data) {
         nextIds[data.code]++;
-        socket.emit("newId", { newId: nextIds[data.code] });
+        boards[data.code][data.id].isEditing = false;
+        socket.emit("newId", { newId: nextIds[data.code]});
+        socket.to(data.code).emit("completeEdit", {id:data.id});
     });
 
     //  clearBoard

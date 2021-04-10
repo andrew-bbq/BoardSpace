@@ -11,6 +11,7 @@ class DrawingObject {
         this.lowerRight = lowerRight;
         this.type = type;
         this.selected = false;
+        this.isEditing = true;
     }
 
     getSvg() {
