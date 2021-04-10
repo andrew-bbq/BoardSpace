@@ -327,20 +327,22 @@ class Rectangle extends DrawingObject {
         copyRect.setAttribute("y", this.y);
         copyRect.setAttribute("width", this.width);
         copyRect.setAttribute("height", this.height);
+        copy.width = this.width;
+        copy.height = this.height;
         copy.rect = copyRect;
         copy.isEditing = false;
         let id = this.id;
-        copy.ellipse.onmouseenter = function () {
+        copy.rect.onmouseenter = function () {
             if (mouseDown && tool == TOOL_ERASER) {
                 erase(id);
             }
         };
-        copy.ellipse.onmousedown = function () {
+        copy.rect.onmousedown = function () {
             if (tool == TOOL_ERASER) {
                 erase(id);
             }
         }
-        copy.ellipse.onmouseup = function () {
+        copy.rect.onmouseup = function () {
             switch (tool) {
                 case TOOL_EYEDROP:
                     setColor(color);
@@ -582,6 +584,8 @@ class Ellipse extends DrawingObject {
         copyEllipse.setAttribute("cy", this.y);
         copyEllipse.setAttribute("rx", Math.abs(this.rx));
         copyEllipse.setAttribute("ry", Math.abs(this.ry));
+        copy.rx = this.rx;
+        copy.ry = this.ry;
         copyEllipse.setAttribute("fill", color);
         copy.ellipse = copyEllipse;
         copy.isEditing = false;
