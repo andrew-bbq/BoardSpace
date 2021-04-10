@@ -218,7 +218,6 @@ class Text extends DrawingObject {
 
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("textWrap");
-        this.foreignText.classList.add("textEnabled");
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
             if (tool == TOOL_TEXT) {
