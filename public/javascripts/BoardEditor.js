@@ -123,6 +123,7 @@ socket.on('joinData', function (data) {
                 }
                 break;
         }
+        newBoard[id].isEditing = sentBoard[id].isEditing;
         if (sentBoard[id].position) {
             newBoard[id].position = sentBoard[id].position;
         }
@@ -191,6 +192,7 @@ socket.on("add", function (data) {
             }
             break;
     }
+    board[data.id].isEditing = data.isEditing;
     compileBoard();
 });
 
@@ -367,7 +369,7 @@ if (canEdit) {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: -1, y: -1 }, { x: -1, y: -1 }, penSize, color);
-                socket.emit("add", { type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: { upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: "" } });
+                socket.emit("add", {isEditing:true, type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: { upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: "" } });
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -382,7 +384,7 @@ if (canEdit) {
                     setTimeout(function () {
                         board[nextId].foreignText.firstChild.focus();
                     }, 0);
-                    socket.emit("add", { type: TOOL_TEXT, code: code, id: nextId, content: { text: board[nextId].getText(), upperLeft: textUpperLeft, lowerRight: textLowerRight }, size: board[nextId].size, color: board[nextId].color });
+                    socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: nextId, content: { text: board[nextId].getText(), upperLeft: textUpperLeft, lowerRight: textLowerRight }, size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
@@ -397,7 +399,7 @@ if (canEdit) {
             case TOOL_RECTANGLE:
                 board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color);
                 // Emit here
-                socket.emit("add", {
+                socket.emit("add", {isEditing:true,
                     type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color,
                     content: { upperLeft: { x: mouseX, y: mouseY }, lowerRight: { x: mouseX, y: mouseY } }
                 });
@@ -405,7 +407,7 @@ if (canEdit) {
                 break;
             case TOOL_ELLIPSE:
                 board[nextId] = new Ellipse(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color)
-                socket.emit("add", {
+                socket.emit("add", {isEditing:true,
                     type: TOOL_ELLIPSE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color,
                     content: { upperLeft: { x: mouseX, y: mouseY }, lowerRight: { x: mouseX, y: mouseY } }
                 });
@@ -458,7 +460,7 @@ if (canEdit) {
             case TOOL_POLYGON:
                 board[nextId] = new Polygon(nextId, { x: -1, y: -1 }, { x: -1, y: -1 }, penSize, color);
                 board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
-                socket.emit("add", {
+                socket.emit("add", {isEditing:true,
                     type: TOOL_POLYGON, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color,
                     content: { upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: board[nextId].getPath() }
                 });
@@ -578,14 +580,18 @@ if (canEdit) {
         }
         if ((event.key == "Delete" || event.key == "Backspace") && selected.length > 0) {
             let undoObjects = [];
+            let notEditing = [];
             for (let i = 0; i < selected.length; i++) {
                 if(board[selected[i]] && board[selected[i]].isEditing){
                     continue;
                 }
-                undoObjects.push(board[selected[i]]);
-                delete board[selected[i]];
+                if(board[selected[i]]){
+                    undoObjects.push(board[selected[i]]);
+                    notEditing.push(selected[i]);
+                    delete board[selected[i]];
+                }
             }
-            socket.emit("multiErase", { code: code, ids: selected });
+            socket.emit("multiErase", { code: code, ids: notEditing });
             undoStack.push({ type: "multierase", objects: undoObjects });
             selected = [];
         }
@@ -630,19 +636,19 @@ let undoFunc = function () {
             compileBoard();
             switch (data.objType) {
                 case TOOL_PEN:
-                    socket.emit("add", { code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                    socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_POLYGON:
-                    socket.emit("add", { code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                    socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_TEXT:
-                    socket.emit("add", { type: TOOL_TEXT, code: code, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                    socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_RECTANGLE:
-                    socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                    socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
                 case TOOL_ELLIPSE:
-                    socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                    socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
             }
             socket.emit("updatePosition", { code: code, type: data.object.type, id: data.object.id, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
@@ -663,25 +669,25 @@ let undoFunc = function () {
                     board[key] = object;
                     switch (object.type) {
                         case TOOL_PEN:
-                            socket.emit("add", {
+                            socket.emit("add", {isEditing:false,
                                 code: code, type: TOOL_PEN, id: object.id,
                                 content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color
                             });
                             break;
                         case TOOL_POLYGON:
-                            socket.emit("add", {
+                            socket.emit("add", {isEditing:false,
                                 code: code, type: TOOL_POLYGON, id: object.id,
                                 content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color
                             });
                             break;
                         case TOOL_TEXT:
-                            socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
+                            socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
                             break;
                         case TOOL_RECTANGLE:
-                            socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                            socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                             break;
                         case TOOL_ELLIPSE:
-                            socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                            socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                             break;
                     }
                     socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
@@ -703,22 +709,22 @@ let undoFunc = function () {
                 board[object.id] = object;
                 switch (object.type) {
                     case TOOL_PEN:
-                        socket.emit("add", { code: code, type: TOOL_PEN, id: object.id, content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
+                        socket.emit("add", {isEditing:false, code: code, type: TOOL_PEN, id: object.id, content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
                         break;
                     case TOOL_TEXT:
-                        socket.emit("add", { type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
+                        socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
                         break;
                     case TOOL_RECTANGLE:
-                        socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                        socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                         break;
                     case TOOL_POLYGON:
-                        socket.emit("add", {
+                        socket.emit("add", {isEditing:false,
                             code: code, type: TOOL_POLYGON, id: object.id,
                             content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color
                         });
                         break;
                     case TOOL_ELLIPSE:
-                        socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                        socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                         break;
                 }
                 socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
@@ -758,19 +764,19 @@ let redoFunc = function () {
                 compileBoard();
                 switch (data.objType) {
                     case TOOL_PEN:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                        socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_POLYGON:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                        socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
-                        socket.emit("add", { code: code, type: data.objType, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                        socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_RECTANGLE:
-                        socket.emit("add", { type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                        socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                         break;
                     case TOOL_ELLIPSE:
-                        socket.emit("add", { type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                        socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                         break;
                 }
                 socket.emit("updatePosition", { code: code, id: data.object.id, type: data.object.type, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
@@ -904,7 +910,6 @@ function compileBoard() {
         }
     } else { // draw in order
         for (let id in board) {
-
             if (selected.includes(id)) {
                 board[id].selected = true;
             } else {

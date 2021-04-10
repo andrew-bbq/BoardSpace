@@ -89,6 +89,7 @@ class Pen extends DrawingObject {
         let copy = new Pen(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
         copy.position = {x: this.position.x, y: this.position.y};
         copy.path = this.path;
+        copy.isEditing = false;
         return copy;
     }
 
@@ -253,6 +254,7 @@ class Text extends DrawingObject {
         copy.textDiv = this.textDiv;
         copy.foreignText = this.foreignText;
         copy.position = {x: this.position.x, y: this.position.y};
+        copy.isEditing = false;
         return copy;
     }
 
@@ -326,6 +328,25 @@ class Rectangle extends DrawingObject {
         copyRect.setAttribute("width", this.width);
         copyRect.setAttribute("height", this.height);
         copy.rect = copyRect;
+        copy.isEditing = false;
+        let id = this.id;
+        copy.ellipse.onmouseenter = function () {
+            if (mouseDown && tool == TOOL_ERASER) {
+                erase(id);
+            }
+        };
+        copy.ellipse.onmousedown = function () {
+            if (tool == TOOL_ERASER) {
+                erase(id);
+            }
+        }
+        copy.ellipse.onmouseup = function () {
+            switch (tool) {
+                case TOOL_EYEDROP:
+                    setColor(color);
+                    break;
+            }
+        };
         return copy;
     }
 
@@ -475,6 +496,7 @@ class Polygon extends DrawingObject {
         let copy = new Polygon(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
         copy.position = {x: this.position.x, y: this.position.y};
         copy.path = this.path;
+        copy.isEditing = false;
         return copy;
     }
 }
@@ -562,6 +584,25 @@ class Ellipse extends DrawingObject {
         copyEllipse.setAttribute("ry", Math.abs(this.ry));
         copyEllipse.setAttribute("fill", color);
         copy.ellipse = copyEllipse;
+        copy.isEditing = false;
+        let id = this.id;
+        copy.ellipse.onmouseenter = function () {
+            if (mouseDown && tool == TOOL_ERASER) {
+                erase(id);
+            }
+        };
+        copy.ellipse.onmousedown = function () {
+            if (tool == TOOL_ERASER) {
+                erase(id);
+            }
+        }
+        copy.ellipse.onmouseup = function () {
+            switch (tool) {
+                case TOOL_EYEDROP:
+                    setColor(color);
+                    break;
+            }
+        };
         return copy;
     }
 }

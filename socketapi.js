@@ -66,7 +66,7 @@ io.on("connection", (socket) => {
     //      }
     socket.on("add", function (data) {
         socket.to(data.code).emit('add', data);
-        boards[data.code][data.id] = { type: data.type, isEditing:true, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
+        boards[data.code][data.id] = { type: data.type, isEditing:data.isEditing, data: { content: data.content, size: data.size, color: data.color, x: data.x, y: data.y } };
     });
 
     socket.on("updatePosition", function (data) {
