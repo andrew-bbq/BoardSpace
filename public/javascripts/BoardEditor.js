@@ -23,6 +23,7 @@ const code = document.getElementById("code").value;
 let colorer;
 let opaciter;
 let opacity = "FF";
+
 $(".tool").click(function () {
     switch ($(this).val()) {
         case "Pen":
@@ -72,7 +73,7 @@ $(".tool").click(function () {
     $(this).attr("id", "selected");
 });
 
-socket.on("begone", function() {
+socket.on("begone", function () {
     window.location.replace("/");
 });
 
@@ -174,7 +175,7 @@ socket.on("add", function (data) {
         case TOOL_TEXT:
             board[data.id] = new Text(data.id, data.content.upperLeft, data.content.lowerRight, data.size, data.color);
             board[data.id].setText(data.content.text);
-            if(tool == TOOL_TEXT) {
+            if (tool == TOOL_TEXT) {
                 board[data.id].enable();
             }
             if (!mouseDown) {
@@ -270,14 +271,14 @@ socket.on('clearBoard', function () {
     clearBoard();
 });
 
-socket.on('completeEdit', function (data){
-    if(board[data.id]){
+socket.on('completeEdit', function (data) {
+    if (board[data.id]) {
         board[data.id].isEditing = false;
     }
 });
 
 function erase(id) {
-    if(board[id] && !board[id].isEditing){
+    if (board[id] && !board[id].isEditing) {
         undoStack.push({ type: "erase", id: id, object: board[id].clone(), objType: board[id].type });
         delete board[id];
         compileBoard();
@@ -320,6 +321,56 @@ let svg = document.getElementById("drawing-svg");
 // does the user have editing access
 let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
 // If the user has edit access, define the board editing listeners
+
+let downloader = document.getElementById("download");
+function outerHTML(el) {
+    var outer = document.createElement('div');
+    outer.appendChild(el.cloneNode(true));
+    return outer.innerHTML;
+}
+function setAttributes(el) {
+    el.setAttribute("version", "1.1");
+    el.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    el.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+}
+function svgImage(xml) {
+    var image = new Image();
+    image.src = 'data:image/svg+xml;base64,' + window.btoa(xml);
+    window.btoa(unescape(encodeURIComponent(xml)))
+    return image;
+}
+downloader.onclick = function () {
+    setAttributes(svg);
+    let outer = outerHTML(svg);
+    let image = svgImage(outer);
+    image.onload = function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        var context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0);
+
+        var a = document.createElement('a');
+        a.download = "image.png";
+        a.href = canvas.toDataURL('image/png');
+        document.body.appendChild(a);
+        a.click();
+    }
+};
+
+
+var svgData = $("#figureSvg")[0].outerHTML;
+var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+var svgUrl = URL.createObjectURL(svgBlob);
+var downloadLink = document.createElement("a");
+downloadLink.href = svgUrl;
+downloadLink.download = "newesttree.svg";
+document.body.appendChild(downloadLink);
+downloadLink.click();
+document.body.removeChild(downloadLink);
+
+
+
 if (canEdit) {
     let pensizer = document.getElementById("pensize");
     let clearer = document.getElementById("clearboard");
@@ -366,7 +417,7 @@ if (canEdit) {
         switch (tool) {
             case TOOL_PEN:
                 board[nextId] = new Pen(nextId, { x: -1, y: -1 }, { x: -1, y: -1 }, penSize, color);
-                socket.emit("add", {isEditing:true, type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: { upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: "" } });
+                socket.emit("add", { isEditing: true, type: TOOL_PEN, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color, content: { upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: "" } });
                 isDrawing = true;
                 break;
             case TOOL_TEXT:
@@ -382,7 +433,7 @@ if (canEdit) {
                     setTimeout(function () {
                         board[nextId].foreignText.firstChild.focus();
                     }, 0);
-                    socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: nextId, content: { text: board[nextId].getText(), upperLeft: textUpperLeft, lowerRight: textLowerRight }, size: board[nextId].size, color: board[nextId].color });
+                    socket.emit("add", { isEditing: false, type: TOOL_TEXT, code: code, id: nextId, content: { text: board[nextId].getText(), upperLeft: textUpperLeft, lowerRight: textLowerRight }, size: board[nextId].size, color: board[nextId].color });
                     undoStack.push({ type: "add", id: nextId, object: board[nextId], objType: TOOL_TEXT });
                     // get a new id for nextId
                     socket.emit("requestNewId", { code: code });
@@ -397,7 +448,8 @@ if (canEdit) {
             case TOOL_RECTANGLE:
                 board[nextId] = new Rectangle(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color);
                 // Emit here
-                socket.emit("add", {isEditing:true,
+                socket.emit("add", {
+                    isEditing: true,
                     type: TOOL_RECTANGLE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color,
                     content: { upperLeft: { x: mouseX, y: mouseY }, lowerRight: { x: mouseX, y: mouseY } }
                 });
@@ -405,7 +457,8 @@ if (canEdit) {
                 break;
             case TOOL_ELLIPSE:
                 board[nextId] = new Ellipse(nextId, { x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }, color)
-                socket.emit("add", {isEditing:true,
+                socket.emit("add", {
+                    isEditing: true,
                     type: TOOL_ELLIPSE, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color,
                     content: { upperLeft: { x: mouseX, y: mouseY }, lowerRight: { x: mouseX, y: mouseY } }
                 });
@@ -458,7 +511,8 @@ if (canEdit) {
             case TOOL_POLYGON:
                 board[nextId] = new Polygon(nextId, { x: -1, y: -1 }, { x: -1, y: -1 }, penSize, color);
                 board[nextId].updatePathData([{ x: mouseX, y: mouseY, type: "line" }]);
-                socket.emit("add", {isEditing:true,
+                socket.emit("add", {
+                    isEditing: true,
                     type: TOOL_POLYGON, code: code, id: nextId, size: board[nextId].size, color: board[nextId].color,
                     content: { upperLeft: board[nextId].upperLeft, lowerRight: board[nextId].lowerRight, path: board[nextId].getPath() }
                 });
@@ -472,25 +526,25 @@ if (canEdit) {
     document.onmouseup = (event) => {
         if (mouseDown) {
             // if pen is selected tool
-            if(board[nextId]){
+            if (board[nextId]) {
                 board[nextId].isEditing = false;
             }
             switch (tool) {
                 case TOOL_PEN:
                     // get a new id for nextId
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_PEN });
-                    socket.emit("requestNewId", { code: code, id:nextId});
+                    socket.emit("requestNewId", { code: code, id: nextId });
                     requestProcessing = true;
                     isDrawing = false;
                     break;
                 case TOOL_RECTANGLE:
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_RECTANGLE });
-                    socket.emit("requestNewId", { code: code, id:nextId });
+                    socket.emit("requestNewId", { code: code, id: nextId });
                     requestProcessing = true;
                     break;
                 case TOOL_ELLIPSE:
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_ELLIPSE });
-                    socket.emit("requestNewId", { code: code, id:nextId });
+                    socket.emit("requestNewId", { code: code, id: nextId });
                     requestProcessing = true;
                     break;
                 case TOOL_SELECT:
@@ -523,7 +577,7 @@ if (canEdit) {
                     break;
                 case TOOL_POLYGON:
                     undoStack.push({ type: "add", id: nextId, object: board[nextId].clone(), objType: TOOL_POLYGON });
-                    socket.emit("requestNewId", { code: code, id:nextId});
+                    socket.emit("requestNewId", { code: code, id: nextId });
                     requestProcessing = true;
                     break;
                 default:
@@ -580,10 +634,10 @@ if (canEdit) {
             let undoObjects = [];
             let notEditing = [];
             for (let i = 0; i < selected.length; i++) {
-                if(board[selected[i]] && board[selected[i]].isEditing){
+                if (board[selected[i]] && board[selected[i]].isEditing) {
                     continue;
                 }
-                if(board[selected[i]]){
+                if (board[selected[i]]) {
                     undoObjects.push(board[selected[i]]);
                     notEditing.push(selected[i]);
                     delete board[selected[i]];
@@ -634,19 +688,19 @@ let undoFunc = function () {
             compileBoard();
             switch (data.objType) {
                 case TOOL_PEN:
-                    socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                    socket.emit("add", { isEditing: false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_POLYGON:
-                    socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                    socket.emit("add", { isEditing: false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_TEXT:
-                    socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                    socket.emit("add", { isEditing: false, type: TOOL_TEXT, code: code, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                     break;
                 case TOOL_RECTANGLE:
-                    socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                    socket.emit("add", { isEditing: false, type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
                 case TOOL_ELLIPSE:
-                    socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                    socket.emit("add", { isEditing: false, type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                     break;
             }
             socket.emit("updatePosition", { code: code, type: data.object.type, id: data.object.id, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
@@ -667,25 +721,27 @@ let undoFunc = function () {
                     board[key] = object;
                     switch (object.type) {
                         case TOOL_PEN:
-                            socket.emit("add", {isEditing:false,
+                            socket.emit("add", {
+                                isEditing: false,
                                 code: code, type: TOOL_PEN, id: object.id,
                                 content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color
                             });
                             break;
                         case TOOL_POLYGON:
-                            socket.emit("add", {isEditing:false,
+                            socket.emit("add", {
+                                isEditing: false,
                                 code: code, type: TOOL_POLYGON, id: object.id,
                                 content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color
                             });
                             break;
                         case TOOL_TEXT:
-                            socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
+                            socket.emit("add", { isEditing: false, type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
                             break;
                         case TOOL_RECTANGLE:
-                            socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                            socket.emit("add", { isEditing: false, type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                             break;
                         case TOOL_ELLIPSE:
-                            socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                            socket.emit("add", { isEditing: false, type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                             break;
                     }
                     socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
@@ -707,22 +763,23 @@ let undoFunc = function () {
                 board[object.id] = object;
                 switch (object.type) {
                     case TOOL_PEN:
-                        socket.emit("add", {isEditing:false, code: code, type: TOOL_PEN, id: object.id, content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
+                        socket.emit("add", { isEditing: false, code: code, type: TOOL_PEN, id: object.id, content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
                         break;
                     case TOOL_TEXT:
-                        socket.emit("add", {isEditing:false, type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
+                        socket.emit("add", { isEditing: false, type: TOOL_TEXT, code: code, id: object.id, content: { text: object.getText(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color });
                         break;
                     case TOOL_RECTANGLE:
-                        socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                        socket.emit("add", { isEditing: false, type: TOOL_RECTANGLE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                         break;
                     case TOOL_POLYGON:
-                        socket.emit("add", {isEditing:false,
+                        socket.emit("add", {
+                            isEditing: false,
                             code: code, type: TOOL_POLYGON, id: object.id,
                             content: { path: object.getPath(), upperLeft: object.upperLeft, lowerRight: object.lowerRight }, size: object.size, color: object.color
                         });
                         break;
                     case TOOL_ELLIPSE:
-                        socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
+                        socket.emit("add", { isEditing: false, type: TOOL_ELLIPSE, code: code, id: object.id, color: object.color, content: { upperLeft: object.upperLeft, lowerRight: object.lowerRight } });
                         break;
                 }
                 socket.emit("updatePosition", { code: code, type: object.type, id: object.id, position: object.position, upperLeft: object.upperLeft, lowerRight: object.lowerRight });
@@ -762,19 +819,19 @@ let redoFunc = function () {
                 compileBoard();
                 switch (data.objType) {
                     case TOOL_PEN:
-                        socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                        socket.emit("add", { isEditing: false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_POLYGON:
-                        socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                        socket.emit("add", { isEditing: false, code: code, type: data.objType, id: data.id, content: { path: data.object.getPath(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_TEXT:
-                        socket.emit("add", {isEditing:false, code: code, type: data.objType, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
+                        socket.emit("add", { isEditing: false, code: code, type: data.objType, id: data.id, content: { text: data.object.getText(), upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight }, size: data.object.size, color: data.object.color });
                         break;
                     case TOOL_RECTANGLE:
-                        socket.emit("add", {isEditing:false, type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                        socket.emit("add", { isEditing: false, type: TOOL_RECTANGLE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                         break;
                     case TOOL_ELLIPSE:
-                        socket.emit("add", {isEditing:false, type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
+                        socket.emit("add", { isEditing: false, type: TOOL_ELLIPSE, code: code, id: data.id, color: data.object.color, content: { upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight } });
                         break;
                 }
                 socket.emit("updatePosition", { code: code, id: data.object.id, type: data.object.type, position: data.object.position, upperLeft: data.object.upperLeft, lowerRight: data.object.lowerRight });
@@ -922,10 +979,10 @@ function compileBoard() {
     // https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
     if (textModeEnabled) {
         let range = document.createRange();
-        if(board[textEditingID]){
-            if(!(board[textEditingID].foreignText.firstChild.childNodes[0]))
+        if (board[textEditingID]) {
+            if (!(board[textEditingID].foreignText.firstChild.childNodes[0]))
                 range.setStart(board[textEditingID].foreignText.firstChild, 0);
-            else if(selectedNode == 0)
+            else if (selectedNode == 0)
                 range.setStart(board[textEditingID].foreignText.firstChild.childNodes[selectedNode], selectOffset);
             else
                 range.setStart(board[textEditingID].foreignText.firstChild.childNodes[selectedNode].childNodes[0], selectOffset);
@@ -979,9 +1036,9 @@ function animate(timestamp) {
             case TOOL_PEN:
                 if (mouseDown && !mouseLeft && board[nextId]) {
                     plotPenPoint();
-                }   
+                }
                 compileBoard();
-                break;  
+                break;
             case TOOL_RECTANGLE:
                 if (mouseDown) {
                     updateShape(TOOL_RECTANGLE);
@@ -1010,7 +1067,7 @@ function animate(timestamp) {
                         board[id].upperLeft.y += transY;
                         board[id].lowerRight.x += transX;
                         board[id].lowerRight.y += transY;
-                        if (board[id].type == TOOL_RECTANGLE || board[id].type == TOOL_ELLIPSE){
+                        if (board[id].type == TOOL_RECTANGLE || board[id].type == TOOL_ELLIPSE) {
                             board[id].updateFromCorners(board[id].upperLeft, board[id].lowerRight);
                             socket.emit("update", { type: board[id].type, code: code, id: id, color: board[id].color, content: { upperLeft: board[id].upperLeft, lowerRight: board[id].lowerRight } });
                         } else {
@@ -1023,10 +1080,13 @@ function animate(timestamp) {
                 compileBoard();
 
                 break;
-        }  
+        }
         poll = POLL_RATE;
     }
     window.requestAnimationFrame(animate);
 }
 animate();
 compileBoard();
+
+
+
