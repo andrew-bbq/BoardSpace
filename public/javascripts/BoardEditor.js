@@ -333,42 +333,19 @@ function setAttributes(el) {
     el.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     el.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 }
-function svgImage(xml) {
-    var image = new Image();
-    image.src = 'data:image/svg+xml;base64,' + window.btoa(xml);
-    window.btoa(unescape(encodeURIComponent(xml)))
-    return image;
-}
 downloader.onclick = function () {
     setAttributes(svg);
     let outer = outerHTML(svg);
-    let image = svgImage(outer);
-    image.onload = function () {
-        var canvas = document.createElement('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
-        var context = canvas.getContext('2d');
-        context.drawImage(image, 0, 0);
-
-        var a = document.createElement('a');
-        a.download = "image.png";
-        a.href = canvas.toDataURL('image/png');
-        document.body.appendChild(a);
-        a.click();
-    }
+    var svgData = outer;
+    var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+    var svgUrl = URL.createObjectURL(svgBlob);
+    var downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = "board" + code + ".svg";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
 };
-
-
-var svgData = $("#figureSvg")[0].outerHTML;
-var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
-var svgUrl = URL.createObjectURL(svgBlob);
-var downloadLink = document.createElement("a");
-downloadLink.href = svgUrl;
-downloadLink.download = "newesttree.svg";
-document.body.appendChild(downloadLink);
-downloadLink.click();
-document.body.removeChild(downloadLink);
-
 
 
 if (canEdit) {
