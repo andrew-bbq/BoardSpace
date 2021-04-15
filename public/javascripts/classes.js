@@ -197,7 +197,6 @@ class Text extends DrawingObject {
         let updateSize = this.color;
         let updateColor = this.color;
 
-        
         // emits when textbox is edited
         this.textDiv.addEventListener('input', function (div) {
             let x = document.getElementById("textdiv" + id);
@@ -224,7 +223,7 @@ class Text extends DrawingObject {
             textEditingID = id;
         });
 
-        this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
+        this.foreignText.style = "font-family:arial; text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("textWrap");
         this.foreignText.appendChild(this.textDiv);
         this.foreignText.onmousedown = function (ftext) {
@@ -258,10 +257,11 @@ class Text extends DrawingObject {
         this.moving = false;
         let lastMoving = id;
         this.foreignText.onmousedown = function(event){
+            console.log("Moving");
             if(!mouseDown){
                 board[lastMoving].moving = false;
             }
-            let name = event.path[0].getAttribute("id");
+            let name = event.path[0].getAttribute("id") || event.path[1].getAttribute("id");
             lastMoving = +name.slice(7, name.length);
             let box = svg.getBoundingClientRect();
             mouseX = event.clientX - box.left;
