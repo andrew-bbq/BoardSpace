@@ -19,7 +19,7 @@ class DrawingObject {
     }
 
     applyTransformations(svg) {
-        svg.setAttribute("transform", "translate("+Number(this.position.x)+","+Number(this.position.y)+")");
+        svg.setAttribute("transform", "translate(" + Number(this.position.x) + "," + Number(this.position.y) + ")");
         if (this.selected) {
             svg.classList.add("svg-selected");
         } else {
@@ -48,7 +48,7 @@ class Pen extends DrawingObject {
     //  lowerRight: bounding rectangle lower right corner
     //  size: pen stroke-width
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
+        super(id, { x: 0, y: 0 }, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_PEN);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -86,8 +86,8 @@ class Pen extends DrawingObject {
     }
 
     clone() {
-        let copy = new Pen(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
-        copy.position = {x: this.position.x, y: this.position.y};
+        let copy = new Pen(this.id, { x: this.upperLeft.x, y: this.upperLeft.y }, { x: this.lowerRight.x, y: this.lowerRight.y }, this.size, this.color);
+        copy.position = { x: this.position.x, y: this.position.y };
         copy.path = this.path;
         copy.isEditing = false;
         return copy;
@@ -170,7 +170,7 @@ class Text extends DrawingObject {
     //  size: font size
     //  color: text color
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, {x:upperLeft.x, y:upperLeft.y}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
+        super(id, { x: upperLeft.x, y: upperLeft.y }, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_TEXT);
         this.size = size;
         this.color = color;
         this.height = this.lowerRight.y - this.upperLeft.y;
@@ -186,7 +186,7 @@ class Text extends DrawingObject {
         this.textDiv.setAttribute("contentEditable", "true");
         this.textDiv.setAttribute("id", "textdiv" + id);
         this.textDiv.setAttribute("width", this.width + "px");
-        this.textDiv.setAttribute("xmlns","http://www.w3.org/1999/xhtml");
+        this.textDiv.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
         this.foreignText.setAttribute("height", this.height);
         this.foreignText.setAttribute("width", this.width + 20 + "px");
         this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
@@ -199,7 +199,7 @@ class Text extends DrawingObject {
 
         // emits when textbox is edited
         this.textDiv.addEventListener('input', function (div) {
-            if(!board[id]){
+            if (!board[id]) {
                 return;
             }
             let x = document.getElementById("textdiv" + id);
@@ -219,7 +219,7 @@ class Text extends DrawingObject {
                 color: updateColor
             });
         });
-        
+
         this.textDiv.addEventListener('focus', function (div) {
             textEditingID = id;
         });
@@ -257,85 +257,100 @@ class Text extends DrawingObject {
 
         this.moving = false;
         let lastMoving = id;
-        this.foreignText.onmousedown = function(event){
-            if(!board[lastMoving]){
+        this.foreignText.onmousedown = function (event) {
+            if (!board[lastMoving]) {
                 return;
             }
-            if(!mouseDown){
+            if (!mouseDown) {
                 board[lastMoving].moving = false;
             }
             let name = event.target.getAttribute("id");
-            if(!name){
-                for(let i = 1; i < event.path.length; i++){     
-                    if(event.path[i].getAttribute("id") && event.path[i].getAttribute("id").includes("textdiv")){
+            if (!name) {
+                for (let i = 1; i < event.path.length; i++) {
+                    if (event.path[i].getAttribute("id") && event.path[i].getAttribute("id").includes("textdiv")) {
                         name = event.path[i].getAttribute("id");
                         break;
                     }
-                    if(i == event.path.length-1){
+                    if (i == event.path.length - 1) {
                         return;
                     }
                 }
             }
             lastMoving = +name.slice(7, name.length);
+            if (!board[lastMoving]) {
+                return;
+            }
             let box = svg.getBoundingClientRect();
             mouseX = event.clientX - box.left;
             let width = board[lastMoving].width;
             let left = board[lastMoving].upperLeft.x;
-            if(mouseX < left + width+20 && mouseX >left + width-20){
+            if (mouseX < left + width + 20 && mouseX > left + width - 20) {
                 board[lastMoving].moving = true;
             }
         }
-        this.foreignText.onmousemove = function(event){
-            if(!board[lastMoving] || !board[lastMoving].moving){
+        this.foreignText.onmousemove = function (event) {
+            if (!board[lastMoving]) {
                 return;
             }
-            if(!mouseDown){
+            let foreign = board[lastMoving].foreignText;
+            let box = svg.getBoundingClientRect();
+            mouseX = event.clientX - box.left;
+            let width = board[lastMoving].width;
+            let left = board[lastMoving].upperLeft.x;
+            if (mouseX < left + width + 20 && mouseX > left + width - 20 && tool == TOOL_TEXT) {
+                board[lastMoving].foreignText.style.cursor = "e-resize";
+            }
+            else{
+                board[lastMoving].foreignText.style.cursor = "default";
+            }
+
+            if(!board[lastMoving].moving){
+                return;
+            }
+            if (!mouseDown) {
                 board[lastMoving].moving = false;
             }
-            if(mouseDown && tool == TOOL_TEXT){
-                let foreign = document.getElementById("foreigntext" + lastMoving);
-                let box = svg.getBoundingClientRect();
-                mouseX = event.clientX - box.left;
-                    let newWidth = mouseX - board[lastMoving].upperLeft.x + 20;
-                    if(newWidth <= 30){
-                        return;
-                    }
-                    foreign.setAttribute('width', newWidth);
-                    board[lastMoving].width = newWidth;
-                    let x = document.getElementById("textdiv" + id);
-                    foreign.setAttribute('height', x.getBoundingClientRect().height);
-                    board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
-                    board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 20;
-                    socket.emit('update', {
-                        type: TOOL_TEXT,
-                        code: code,
-                        id: id,
-                        content: {
-                            text: board[lastMoving].getText(),
-                            upperLeft: board[lastMoving].upperLeft,
-                            lowerRight: board[lastMoving].lowerRight
-                        },
-                        size: updateSize,
-                        color: updateColor
-                    });
+            if (mouseDown && tool == TOOL_TEXT) {
+                let newWidth = mouseX - board[lastMoving].upperLeft.x + 20;foreign.style.cursor = "e-resize";
+                if (newWidth <= 30) {
+                    return;
+                }
+                foreign.setAttribute('width', newWidth);
+                board[lastMoving].width = newWidth;
+                let x = document.getElementById("textdiv" + id);
+                foreign.setAttribute('height', x.getBoundingClientRect().height);
+                board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
+                board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 20;
+                socket.emit('update', {
+                    type: TOOL_TEXT,
+                    code: code,
+                    id: id,
+                    content: {
+                        text: board[lastMoving].getText(),
+                        upperLeft: board[lastMoving].upperLeft,
+                        lowerRight: board[lastMoving].lowerRight
+                    },
+                    size: updateSize,
+                    color: updateColor
+                });
             }
         }
     }
 
-    setWidth(width){
+    setWidth(width) {
         this.foreignText.setAttribute('width', width + 20);
         this.textDiv.setAttribute('width', width);
         this.width = width;
     }
 
-    setHeight(height){
+    setHeight(height) {
         this.foreignText.setAttribute('height', height);
         this.textDiv.setAttribute('height', height);
         this.height = height;
     }
 
     clone() {
-        if(!board[this.id]){
+        if (!board[this.id]) {
             return;
         }
         this.foreignText.setAttribute('height', this.textDiv.getBoundingClientRect().height);
@@ -352,10 +367,10 @@ class Text extends DrawingObject {
             size: this.updateSize,
             color: this.updateColor
         });
-        let copy = new Text(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
+        let copy = new Text(this.id, { x: this.upperLeft.x, y: this.upperLeft.y }, { x: this.lowerRight.x, y: this.lowerRight.y }, this.size, this.color);
         copy.textDiv = this.textDiv;
         copy.foreignText = this.foreignText;
-        copy.position = {x: this.position.x, y: this.position.y};
+        copy.position = { x: this.position.x, y: this.position.y };
         copy.isEditing = false;
         return copy;
     }
@@ -388,7 +403,7 @@ class Text extends DrawingObject {
 
 class Rectangle extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
+        super(id, { x: 0, y: 0 }, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_RECTANGLE);
         this.color = color;
         this.x = upperLeft.x;
         this.y = upperLeft.y;
@@ -421,8 +436,8 @@ class Rectangle extends DrawingObject {
     }
 
     clone() {
-        let copy = new Rectangle(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
-        copy.position = {x: this.position.x, y: this.position.y};
+        let copy = new Rectangle(this.id, { x: this.upperLeft.x, y: this.upperLeft.y }, { x: this.lowerRight.x, y: this.lowerRight.y }, this.color);
+        copy.position = { x: this.position.x, y: this.position.y };
         let copyRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         copyRect.setAttribute("fill", color);
         copyRect.setAttribute("x", this.x);
@@ -501,7 +516,7 @@ class Rectangle extends DrawingObject {
 
 class Polygon extends DrawingObject {
     constructor(id, upperLeft, lowerRight, size, color) {
-        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_POLYGON);
+        super(id, { x: 0, y: 0 }, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_POLYGON);
         this.size = size;
         this.color = color;
         // Set up the SVG path
@@ -597,8 +612,8 @@ class Polygon extends DrawingObject {
     }
 
     clone() {
-        let copy = new Polygon(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
-        copy.position = {x: this.position.x, y: this.position.y};
+        let copy = new Polygon(this.id, { x: this.upperLeft.x, y: this.upperLeft.y }, { x: this.lowerRight.x, y: this.lowerRight.y }, this.color);
+        copy.position = { x: this.position.x, y: this.position.y };
         copy.path = this.path;
         copy.isEditing = false;
         return copy;
@@ -606,14 +621,14 @@ class Polygon extends DrawingObject {
 }
 class Ellipse extends DrawingObject {
     constructor(id, upperLeft, lowerRight, color) {
-        super(id, {x: 0, y: 0}, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_ELLIPSE);
+        super(id, { x: 0, y: 0 }, DEF_ROTATE, DEF_SCALE, upperLeft, lowerRight, TOOL_ELLIPSE);
         this.color = color;
         this.x = upperLeft.x + Math.abs(lowerRight.x - upperLeft.x) / 2;
         this.y = upperLeft.y + Math.abs(lowerRight.y - upperLeft.y) / 2;
         this.rx = 1;
         this.ry = 1;
         // Set up the SVG path
-        
+
         this.ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
         this.ellipse.setAttribute("fill", color);
         this.ellipse.setAttribute("cx", this.x);
@@ -679,8 +694,8 @@ class Ellipse extends DrawingObject {
     }
 
     clone() {
-        let copy = new Ellipse(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.color);
-        copy.position = {x: this.position.x, y: this.position.y};
+        let copy = new Ellipse(this.id, { x: this.upperLeft.x, y: this.upperLeft.y }, { x: this.lowerRight.x, y: this.lowerRight.y }, this.color);
+        copy.position = { x: this.position.x, y: this.position.y };
         let copyEllipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
         copyEllipse.setAttribute("cx", this.x);
         copyEllipse.setAttribute("cy", this.y);
