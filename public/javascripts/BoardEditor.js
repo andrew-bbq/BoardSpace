@@ -323,31 +323,11 @@ let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
 // If the user has edit access, define the board editing listeners
 
 let downloader = document.getElementById("download");
-
-function compileText(newSvg){
-    for (let id in board) {
-        //board[id].selected = false;
-        if(board[id].type == TOOL_TEXT){
-            let text = board[id]; 
-            let newText = document.createElementNS("http://www.w3.org/2000/svg", "text"); 
-            newText.innerHTML = text.textDiv.innerHTML;
-            newText.setAttribute('x',text.upperLeft.x);//
-            newText.setAttribute('y', text.upperLeft.y);
-            //newText.setAttribute("transform", text.getSvg().getAttribute("transform"));
-            newText.setAttribute('font-size', text.size);
-            newText.setAttribute('width', text.width);
-            newText.setAttribute('height', text.height);
-            newText.setAttribute('style', 'fill:' + text.color + ';' + 'font-family: arial');
-            newSvg.appendChild(newText);
-        }
-    }
-}
 downloader.onclick = function () {
     let newSvg = svg.cloneNode(true);
     newSvg.setAttribute("version", "1.1");
     newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     newSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-    compileText(newSvg);
     let outer = document.createElement('div');
     outer.appendChild(newSvg);
     var svgData = outer.innerHTML;

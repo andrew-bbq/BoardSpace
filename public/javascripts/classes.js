@@ -184,6 +184,7 @@ class Text extends DrawingObject {
         this.textDiv.innerHTML = "Click to edit";
         this.textDiv.setAttribute("contentEditable", "true");
         this.textDiv.setAttribute("width", "auto");
+        this.textDiv.setAttribute("xmlns","http://www.w3.org/1999/xhtml");
         this.foreignText.setAttribute("height", this.height + "px");
         this.foreignText.setAttribute("width", this.width + "px");
 
