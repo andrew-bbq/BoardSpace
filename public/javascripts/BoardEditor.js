@@ -337,7 +337,6 @@ downloader.onclick = function () {
     outer.appendChild(newSvg);
     var svgData = outer.innerHTML;
     svgData = svgData.replaceAll("<br>","<br/>")
-    console.log(svgData);
     var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
     var svgUrl = URL.createObjectURL(svgBlob);
     var downloadLink = document.createElement("a");

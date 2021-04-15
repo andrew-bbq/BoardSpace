@@ -200,7 +200,6 @@ class Text extends DrawingObject {
         // emits when textbox is edited
         this.textDiv.addEventListener('input', function (div) {
             if(!board[id]){
-                console.log("Doesnt exist");
                 return;
             }
             let x = document.getElementById("textdiv" + id);
@@ -213,7 +212,7 @@ class Text extends DrawingObject {
                 id: id,
                 content: {
                     text: div.target.innerHTML,
-                    upperLeft: board[lastMoving].upperRight,
+                    upperLeft: board[lastMoving].upperLeft,
                     lowerRight: board[lastMoving].lowerRight
                 },
                 size: updateSize,
@@ -259,6 +258,9 @@ class Text extends DrawingObject {
         this.moving = false;
         let lastMoving = id;
         this.foreignText.onmousedown = function(event){
+            if(!board[lastMoving]){
+                return;
+            }
             if(!mouseDown){
                 board[lastMoving].moving = false;
             }
@@ -284,6 +286,9 @@ class Text extends DrawingObject {
             }
         }
         this.foreignText.onmousemove = function(event){
+            if(!board[lastMoving] || !board[lastMoving].moving){
+                return;
+            }
             if(!mouseDown){
                 board[lastMoving].moving = false;
             }
@@ -291,7 +296,6 @@ class Text extends DrawingObject {
                 let foreign = document.getElementById("foreigntext" + lastMoving);
                 let box = svg.getBoundingClientRect();
                 mouseX = event.clientX - box.left;
-                if(board[lastMoving].moving){
                     let newWidth = mouseX - board[lastMoving].upperLeft.x + 20;
                     if(newWidth <= 30){
                         return;
@@ -302,7 +306,6 @@ class Text extends DrawingObject {
                     foreign.setAttribute('height', x.getBoundingClientRect().height);
                     board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
                     board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 20;
-                    console.log(id);
                     socket.emit('update', {
                         type: TOOL_TEXT,
                         code: code,
@@ -315,7 +318,6 @@ class Text extends DrawingObject {
                         size: updateSize,
                         color: updateColor
                     });
-                }
             }
         }
     }
