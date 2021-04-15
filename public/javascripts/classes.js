@@ -257,7 +257,6 @@ class Text extends DrawingObject {
         this.moving = false;
         let lastMoving = id;
         this.foreignText.onmousedown = function(event){
-            console.log("Moving");
             if(!mouseDown){
                 board[lastMoving].moving = false;
             }
