@@ -235,6 +235,8 @@ socket.on("update", function (data) {
             // If this board already has this textObject, then update it accordingly
             if (board[data.id]) {
                 board[data.id].setText(data.content.text);
+                board[data.id].setWidth(data.content.lowerRight.x - data.content.upperLeft.x);
+                board[data.id].setHeight(data.content.lowerRight.y - data.content.upperLeft.y);
             }
             // Otherwise print err message to console
             else {
@@ -397,7 +399,7 @@ if (canEdit) {
                 // http://jsfiddle.net/brx3xm59/
                 if (!mouseOnText) {
                     let textUpperLeft = { x: mouseX, y: mouseY };
-                    let textLowerRight = { x: (mouseX + DEFAULT_TEXT_WIDTH), y: (mouseY + DEFAULT_TEXT_HEIGHT) };
+                    let textLowerRight = { x: (mouseX + DEFAULT_TEXT_WIDTH), y: (mouseY + penSize+30) };
                     board[nextId] = new Text(nextId, textUpperLeft, textLowerRight, penSize + 20, color);
                     board[nextId].enable();
                     // focus on textbox soon as it is created
@@ -495,6 +497,7 @@ if (canEdit) {
     }
 
     document.onmouseup = (event) => {
+        
         if (mouseDown) {
             // if pen is selected tool
             if (board[nextId]) {

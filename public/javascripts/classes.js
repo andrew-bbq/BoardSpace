@@ -180,14 +180,15 @@ class Text extends DrawingObject {
         // https://stackoverflow.com/questions/4176146/svg-based-text-input-field/26431107
         // http://jsfiddle.net/brx3xm59/
         this.foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        this.foreignText.setAttribute("id", "foreigntext" + id);
         this.textDiv = document.createElement("div");
         this.textDiv.innerHTML = "Click to edit";
         this.textDiv.setAttribute("contentEditable", "true");
-        this.textDiv.setAttribute("width", "auto");
+        this.textDiv.setAttribute("id", "textdiv" + id);
+        this.textDiv.setAttribute("width", this.width + "px");
         this.textDiv.setAttribute("xmlns","http://www.w3.org/1999/xhtml");
-        this.foreignText.setAttribute("height", this.height + "px");
-        this.foreignText.setAttribute("width", this.width + "px");
-
+        this.foreignText.setAttribute("height", this.height);
+        this.foreignText.setAttribute("width", this.width + 10 + "px");
         this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
         this.isEditing = false;
         // define variables for updating
@@ -196,8 +197,15 @@ class Text extends DrawingObject {
         let updateSize = this.color;
         let updateColor = this.color;
 
+        
         // emits when textbox is edited
         this.textDiv.addEventListener('input', function (div) {
+            let x = document.getElementById("textdiv" + id);
+            let foreign = document.getElementById("foreigntext" + id);
+            foreign.setAttribute('height', x.getBoundingClientRect().height);
+            //board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
+            updateLowerRight.x = board[lastMoving].lowerRight.x;
+            updateLowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
             socket.emit('update', {
                 type: TOOL_TEXT,
                 code: code,
@@ -215,7 +223,6 @@ class Text extends DrawingObject {
         this.textDiv.addEventListener('focus', function (div) {
             textEditingID = id;
         });
-
 
         this.foreignText.style = "text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("textWrap");
@@ -247,6 +254,70 @@ class Text extends DrawingObject {
                     break;
             }
         };
+
+        this.left = upperLeft.x;
+        this.moving = false;
+        let lastMoving = id;
+        this.foreignText.onmousedown = function(event){
+            if(!mouseDown){
+                board[lastMoving].moving = false;
+            }
+            let name = event.path[0].getAttribute("id");
+            lastMoving = +name.slice(7, name.length);
+            let box = svg.getBoundingClientRect();
+            mouseX = event.clientX - box.left;
+            let width = board[lastMoving].width;
+            let left = board[lastMoving].left;
+            if(mouseX < left + width+20 && mouseX >left + width-20){
+                board[lastMoving].moving = true;
+            }
+        }
+        this.foreignText.onmousemove = function(event){
+            if(!mouseDown){
+                board[lastMoving].moving = false;
+            }
+            if(mouseDown && tool == TOOL_TEXT){
+                let foreign = document.getElementById("foreigntext" + lastMoving);
+                let box = svg.getBoundingClientRect();
+                mouseX = event.clientX - box.left;
+                if(board[lastMoving].moving){
+                    let newWidth = mouseX - board[id].left + 10;
+                    if(newWidth <= 30){
+                        return;
+                    }
+                    foreign.setAttribute('width', newWidth);
+                    board[lastMoving].width = newWidth;
+                    let x = document.getElementById("textdiv" + id);
+                    foreign.setAttribute('height', x.getBoundingClientRect().height);
+                    board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
+                    board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 10;
+                    socket.emit('update', {
+                        type: TOOL_TEXT,
+                        code: code,
+                        id: id,
+                        content: {
+                            text: event.target.innerHTML,
+                            upperLeft: updateUpperLeft,
+                            lowerRight: updateLowerRight
+                        },
+                        size: updateSize,
+                        color: updateColor
+                    });
+                }
+            }
+        }
+    }
+
+    setWidth(width){
+        this.foreignText.setAttribute('width', width + 10);
+        this.textDiv.setAttribute('width', width);
+        this.width = width;
+    }
+
+    setHeight(height){
+        this.foreignText.setAttribute('height', height);
+        this.textDiv.setAttribute('height', height);
+        this.height = height;
     }
 
     clone() {
