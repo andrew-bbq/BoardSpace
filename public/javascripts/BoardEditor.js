@@ -343,13 +343,13 @@ function compileText(newSvg){
     }
 }
 downloader.onclick = function () {
-    let newSvg = svg.cloneNode('deep');
+    let newSvg = svg.cloneNode(true);
     newSvg.setAttribute("version", "1.1");
     newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     newSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
     compileText(newSvg);
     let outer = document.createElement('div');
-    outer.appendChild(newSvg.cloneNode(true));
+    outer.appendChild(newSvg);
     var svgData = outer.innerHTML;
     var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
     var svgUrl = URL.createObjectURL(svgBlob);
