@@ -39,8 +39,8 @@ $(".tool").click(function () {
         case "Text":
             tool = TOOL_TEXT;
             resetSelection();
-            enterTextMode();
             compileBoard();
+            enterTextMode();
             break;
         case "Rectangle":
             tool = TOOL_RECTANGLE;
@@ -49,6 +49,7 @@ $(".tool").click(function () {
             break;
         case "Polygon":
             tool = TOOL_POLYGON;
+            resetSelection();
             leaveTextMode();
             break;
         case "Eyedrop":
@@ -63,14 +64,16 @@ $(".tool").click(function () {
             break;
         case "Select":
             tool = TOOL_SELECT;
-            resetSelection();
             leaveTextMode();
+            resetSelection();
+            
             break;
         default:
             break;
     }
     $(".tool").removeAttr("id");
     $(this).attr("id", "selected");
+    compileBoard();
 });
 
 socket.on("begone", function () {
@@ -329,6 +332,7 @@ let canEdit = document.getElementById("canEdit").getAttribute("canEdit");
 
 let downloader = document.getElementById("download");
 downloader.onclick = function () {
+    enterTextMode();
     let newSvg = svg.cloneNode(true);
     newSvg.setAttribute("version", "1.1");
     newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -345,6 +349,7 @@ downloader.onclick = function () {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+    leaveTextMode();
 };
 
 
