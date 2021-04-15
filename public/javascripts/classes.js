@@ -188,7 +188,7 @@ class Text extends DrawingObject {
         this.textDiv.setAttribute("width", this.width + "px");
         this.textDiv.setAttribute("xmlns","http://www.w3.org/1999/xhtml");
         this.foreignText.setAttribute("height", this.height);
-        this.foreignText.setAttribute("width", this.width + 10 + "px");
+        this.foreignText.setAttribute("width", this.width + 20 + "px");
         this.textDiv.addEventListener("mousedown", function () { mouseOnText = true; }, false);
         this.isEditing = false;
         // define variables for updating
@@ -255,7 +255,6 @@ class Text extends DrawingObject {
             }
         };
 
-        this.left = upperLeft.x;
         this.moving = false;
         let lastMoving = id;
         this.foreignText.onmousedown = function(event){
@@ -267,7 +266,7 @@ class Text extends DrawingObject {
             let box = svg.getBoundingClientRect();
             mouseX = event.clientX - box.left;
             let width = board[lastMoving].width;
-            let left = board[lastMoving].left;
+            let left = board[lastMoving].upperLeft.x;
             if(mouseX < left + width+20 && mouseX >left + width-20){
                 board[lastMoving].moving = true;
             }
@@ -281,7 +280,7 @@ class Text extends DrawingObject {
                 let box = svg.getBoundingClientRect();
                 mouseX = event.clientX - box.left;
                 if(board[lastMoving].moving){
-                    let newWidth = mouseX - board[id].left + 10;
+                    let newWidth = mouseX - board[lastMoving].upperLeft.x + 20;
                     if(newWidth <= 30){
                         return;
                     }
@@ -290,7 +289,7 @@ class Text extends DrawingObject {
                     let x = document.getElementById("textdiv" + id);
                     foreign.setAttribute('height', x.getBoundingClientRect().height);
                     board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
-                    board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 10;
+                    board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 20;
                     socket.emit('update', {
                         type: TOOL_TEXT,
                         code: code,
