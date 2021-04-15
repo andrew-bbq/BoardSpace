@@ -199,20 +199,22 @@ class Text extends DrawingObject {
 
         // emits when textbox is edited
         this.textDiv.addEventListener('input', function (div) {
+            if(!board[id]){
+                console.log("Doesnt exist");
+                return;
+            }
             let x = document.getElementById("textdiv" + id);
             let foreign = document.getElementById("foreigntext" + id);
             foreign.setAttribute('height', x.getBoundingClientRect().height);
-            //board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
-            updateLowerRight.x = board[lastMoving].lowerRight.x;
-            updateLowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
+            board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
             socket.emit('update', {
                 type: TOOL_TEXT,
                 code: code,
                 id: id,
                 content: {
                     text: div.target.innerHTML,
-                    upperLeft: updateUpperLeft,
-                    lowerRight: updateLowerRight
+                    upperLeft: board[lastMoving].upperRight,
+                    lowerRight: board[lastMoving].lowerRight
                 },
                 size: updateSize,
                 color: updateColor
@@ -260,7 +262,18 @@ class Text extends DrawingObject {
             if(!mouseDown){
                 board[lastMoving].moving = false;
             }
-            let name = event.path[0].getAttribute("id") || event.path[1].getAttribute("id");
+            let name = event.target.getAttribute("id");
+            if(!name){
+                for(let i = 1; i < event.path.length; i++){     
+                    if(event.path[i].getAttribute("id") && event.path[i].getAttribute("id").includes("textdiv")){
+                        name = event.path[i].getAttribute("id");
+                        break;
+                    }
+                    if(i == event.path.length-1){
+                        return;
+                    }
+                }
+            }
             lastMoving = +name.slice(7, name.length);
             let box = svg.getBoundingClientRect();
             mouseX = event.clientX - box.left;
@@ -289,14 +302,15 @@ class Text extends DrawingObject {
                     foreign.setAttribute('height', x.getBoundingClientRect().height);
                     board[lastMoving].lowerRight.y = board[lastMoving].upperLeft.y + x.getBoundingClientRect().height;
                     board[lastMoving].lowerRight.x = board[lastMoving].upperLeft.x + newWidth - 20;
+                    console.log(id);
                     socket.emit('update', {
                         type: TOOL_TEXT,
                         code: code,
                         id: id,
                         content: {
-                            text: event.target.innerHTML,
-                            upperLeft: updateUpperLeft,
-                            lowerRight: updateLowerRight
+                            text: board[lastMoving].getText(),
+                            upperLeft: board[lastMoving].upperLeft,
+                            lowerRight: board[lastMoving].lowerRight
                         },
                         size: updateSize,
                         color: updateColor
@@ -307,7 +321,7 @@ class Text extends DrawingObject {
     }
 
     setWidth(width){
-        this.foreignText.setAttribute('width', width + 10);
+        this.foreignText.setAttribute('width', width + 20);
         this.textDiv.setAttribute('width', width);
         this.width = width;
     }
@@ -319,6 +333,23 @@ class Text extends DrawingObject {
     }
 
     clone() {
+        if(!board[this.id]){
+            return;
+        }
+        this.foreignText.setAttribute('height', this.textDiv.getBoundingClientRect().height);
+        this.lowerRight.y = this.upperLeft.y + this.textDiv.getBoundingClientRect().height;
+        socket.emit('update', {
+            type: TOOL_TEXT,
+            code: code,
+            id: this.id,
+            content: {
+                text: this.getText(),
+                upperLeft: this.upperLeft,
+                lowerRight: this.lowerRight
+            },
+            size: this.updateSize,
+            color: this.updateColor
+        });
         let copy = new Text(this.id, {x: this.upperLeft.x, y: this.upperLeft.y}, {x: this.lowerRight.x, y: this.lowerRight.y}, this.size, this.color);
         copy.textDiv = this.textDiv;
         copy.foreignText = this.foreignText;

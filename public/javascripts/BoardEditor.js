@@ -204,7 +204,7 @@ socket.on("add", function (data) {
     compileBoard();
 });
 
-socket.on("update", function (data) {
+socket.on("update", function (data) {      
     // Make sure that the object being changed isn't being changed by this user rn
     if (nextId == data.id) {
         return;
@@ -281,6 +281,9 @@ socket.on('completeEdit', function (data) {
 
 function erase(id) {
     if (board[id] && !board[id].isEditing) {
+        if(board[id] instanceof Text && board[id].moving){
+            return;
+        }
         undoStack.push({ type: "erase", id: id, object: board[id].clone(), objType: board[id].type });
         delete board[id];
         compileBoard();
@@ -366,6 +369,7 @@ if (canEdit) {
     clearer.onclick = function () {
         undoStack.push({ type: "clear", board: board });
         clearBoard();
+        //$('input[class=tool][value="Pen"]').click();
         socket.emit("requestNewId", { code: code });
         requestProcessing = true;
         socket.emit('clearBoard', { code: code });
