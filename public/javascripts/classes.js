@@ -411,7 +411,7 @@ class Rectangle extends DrawingObject {
         this.height = 0;
         // Set up the SVG path
         this.rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        this.rect.setAttribute("fill", color);
+        this.rect.setAttribute("fill", this.color);
         this.rect.setAttribute("x", this.x);
         this.rect.setAttribute("y", this.y);
         this.rect.setAttribute("width", this.width);
@@ -522,7 +522,7 @@ class Polygon extends DrawingObject {
         // Set up the SVG path
         this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         this.path.setAttribute("stroke-width", this.size);
-        this.path.setAttribute("fill", color);
+        this.path.setAttribute("fill", this.color);
         this.path.setAttribute("stroke-linecap", "round");
         this.path.setAttribute("stroke-linejoin", "round");
         this.path.setAttribute("d", "");
@@ -630,7 +630,7 @@ class Ellipse extends DrawingObject {
         // Set up the SVG path
 
         this.ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-        this.ellipse.setAttribute("fill", color);
+        this.ellipse.setAttribute("fill", this.color);
         this.ellipse.setAttribute("cx", this.x);
         this.ellipse.setAttribute("cy", this.y);
         this.ellipse.setAttribute("rx", this.rx);
