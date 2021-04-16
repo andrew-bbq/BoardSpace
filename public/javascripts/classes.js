@@ -439,7 +439,7 @@ class Rectangle extends DrawingObject {
         let copy = new Rectangle(this.id, { x: this.upperLeft.x, y: this.upperLeft.y }, { x: this.lowerRight.x, y: this.lowerRight.y }, this.color);
         copy.position = { x: this.position.x, y: this.position.y };
         let copyRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        copyRect.setAttribute("fill", color);
+        copyRect.setAttribute("fill", this.color);
         copyRect.setAttribute("x", this.x);
         copyRect.setAttribute("y", this.y);
         copyRect.setAttribute("width", this.width);
@@ -703,7 +703,7 @@ class Ellipse extends DrawingObject {
         copyEllipse.setAttribute("ry", Math.abs(this.ry));
         copy.rx = this.rx;
         copy.ry = this.ry;
-        copyEllipse.setAttribute("fill", color);
+        copyEllipse.setAttribute("fill", this.color);
         copy.ellipse = copyEllipse;
         copy.isEditing = false;
         let id = this.id;
