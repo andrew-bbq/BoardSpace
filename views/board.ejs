@@ -3,49 +3,87 @@
 
 <head>
   <title>BoardSpace: A Space for Boards</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster|Nunito|Bebas Neue|Comfortaa|Anton">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
   <link rel='stylesheet' href='/stylesheets/style.css' />
   <script src="/javascripts/constants.js"></script>
   <script src="/javascripts/classes.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
-<body style = "user-select :none">
-  <a href="/">Home</a>
-  <input type="hidden" id="code" value="<%=boardcode%>" />
-  <h1>Board <span id="bcode">
-      <%= boardcode %>
-    </span></h1>
-  <h2>
-    <% if (canEdit) { %>
-      Editor
-      <% } else {%>
-        Viewer
-        <% } %>
-  </h2>
-  <% if (canEdit) { %>
-    Size<input type="range" min="1" max="25" value="4" id="pensize">
-    Color <input type="color" id="color">
-    Opacity <input type="range" min="25" max="255" value="255" id="opacity">
-    <button id="clearboard">clear board </button>
-    <% } %>
 
-      <div id="drawing-goes-here"><svg id="drawing-svg"></svg></div>
-      <% if (canEdit) { %>
-      <div>
-        <input class="tool" type="button" value="Pen" id="selected">
-        <input class="tool" type="button" value="Eraser">
-        <input class="tool" type="button" value="Text">
-        <input class="tool" type="button" value="Rectangle">
-        <input class="tool" type="button" value="Ellipse">
-        <input class="tool" type="button" value="Polygon">
-        <input class="tool" type="button" value="Eyedrop">
-        <input class="tool" type="button" value="Select">
+<body style="user-select :none; background-color: #674ea9">
+  <div class="container">
+    <div class="row">
+      <a class="med-text" style="color:#FFF" href="/">Home</a>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-10">
+        <input type="hidden" id="code" value="<%=boardcode%>" />
+        <h1 class="large-text">Board <span id="bcode">
+            <%= boardcode %>
+          </span></h1>
+        <h2 class="med-text">
+          <% if (canEdit) { %>
+            Editor
+            <% } else {%>
+              Viewer
+              <% } %>
+        </h2>
+        <% if (canEdit) { %>
+            <span class="sm-text">Size </span> <input class="primary-slider" type="range" min="1" max="25" value="4" id="pensize">
+            <span class="sm-text">Color </span> <input class="tool-button" type="color" id="color">
+            <span class="sm-text">Opacity </span> <input class="primary-slider" type="range" min="25" max="255" value="255" id="opacity">
+            <button class="subbutton" id="clearboard">clear board </button>
+          <% } %>
       </div>
-      <div>
-        <input id="undo" type="button" value="Undo">
-        <input id="redo" type="button" value="Redo">
+      <div class="col-sm-1"></div>
+    </div>
+
+    <div class="row text-center">
+      <div class="col-sm-12">
+        <div id="drawing-goes-here"><svg class="board" id="drawing-svg"></svg></div>
+        <% if (canEdit) { %>
+          <div>
+            <button class="tool tool-button" value="Pen"><i class="material-icons">edit</i></button>
+            <button class="tool tool-button" value="Eraser"><i class="material-icons">remove_circle</i></button>
+            <button class="tool tool-button" value="Text"><i class="material-icons">text_fields</i></button>
+            <button class="tool tool-button" value="Rectangle"><i class="material-icons">crop_landscape</i></button>
+            <button class="tool tool-button" value="Ellipse"><i class="material-icons">brightness_1</i></button>
+            <button class="tool tool-button" value="Polygon"><i class="material-icons">polymer</i></button>
+            <button class="tool tool-button" value="Eyedrop"><i class="material-icons">colorize</i></button>
+            <button class="tool tool-button" value="Select"><i class="material-icons">tab_unselected</i></button>
+          </div>
+          <div>
+            <button class="subbutton" id="undo"><i class="material-icons">undo</i></button>
+            <button class="subbutton" id="redo"><i class="material-icons">redo</i></button>
+          </div>
+          <% } %>
+  
       </div>
-      <% } %>
+    </div>
+  </div>
+
+  
+
+      
+          <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <input type="hidden" id="canEdit" canEdit=<%=canEdit %> />

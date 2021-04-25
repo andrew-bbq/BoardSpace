@@ -4,7 +4,7 @@ body {
 }
 
 a {
-  color: #00B7FF;
+  color: #FFF;
 }
 
 .digit {
@@ -16,8 +16,17 @@ a {
 }
 
 #selected {
-  background-color: black;
-  color: white;
+  color: #674ea9;
+  background-color: #FFF;
+  border-width: 1px;
+}
+
+.tool-button {
+  background-color: #674ea9;
+  color: #FFF;
+  border: none;
+  outline: none;
+  margin-bottom: 2px;
 }
 
 .svg-selected {
@@ -45,3 +54,105 @@ a {
 }
 
 svg * { pointer-events: all;}
+
+.vert-center {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.box {
+  border-radius: 25px;
+  background-color: #b4a7d5;
+  padding: 4px;
+  box-shadow: 0px 4px 4px #000;
+  font-family: "Anton", sans-serif;
+  max-width: 50em;
+}
+
+
+.button {
+  border-radius: 5px;
+  box-shadow: 0px 8px 4px #000;
+  background-color: #b4a7d5;
+  border-color: None;
+  border-width: 0px;
+  color: #FFF;
+  margin-top: 6px;
+  font-family: "Anton", sans-serif;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.button:hover {
+  transition: 0.4s;
+  box-shadow: 0px 4px 4px #000;
+  background-color: #674ea9;
+}
+
+.subbutton {
+  color:#FFF;
+  background-color: transparent;
+  outline: none;
+  border: transparent;
+}
+
+.subbutton:hover {
+  transition: 0.4s;
+  color: #674ea9;
+  background-color: #FFF;
+}
+
+.large-text {
+  font-family: "Anton", sans-serif;
+  font-size: 40px;
+  color: #FFF;
+}
+
+.med-text {
+  font-family: "Anton", sans-serif;
+  font-size: 25px;
+  color: #FFF;
+}
+
+.sm-text {
+  font-family: "Anton", sans-serif;
+  font-size: 18px;
+  color: #FFF;
+}
+
+.field {
+  background-color: #666666;
+  border-width: 0;
+  border-radius: 3px;
+  font-family: "Anton", sans-serif;
+  color: #FFF;
+  font-size: 25px;
+  max-width: 50vw;
+}
+
+
+.board {
+  border-color: #FFF;
+  background-color: #FFF;
+}
+
+.primary-slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  width: 17px;
+  height: 25px;
+  background: #666666;
+  border: 1px solid rgba(0, 0, 0, 0);
+  border-radius: 0px;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
