@@ -51,8 +51,15 @@
     <div class="row text-center">
       <div class="col-sm-12">
         <div id="drawing-goes-here"><svg class="board" id="drawing-svg"></svg></div>
+
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-1"></div>
+
         <% if (canEdit) { %>
-          <div>
+          <div class="col-sm-7">
             <button class="tool tool-button" value="Pen"><i class="material-icons">edit</i></button>
             <button class="tool tool-button" value="Eraser"><i class="material-icons">remove_circle</i></button>
             <button class="tool tool-button" value="Text"><i class="material-icons">text_fields</i></button>
@@ -62,14 +69,16 @@
             <button class="tool tool-button" value="Eyedrop"><i class="material-icons">colorize</i></button>
             <button class="tool tool-button" value="Select"><i class="material-icons">tab_unselected</i></button>
           </div>
-          <div>
+          <div class="col-sm-3 text-right">
             <button class="subbutton" id="undo"><i class="material-icons">undo</i></button>
             <button class="subbutton" id="redo"><i class="material-icons">redo</i></button>
           </div>
-          <% } %>
+        <% } %>
   
-      </div>
+      <div class="col-sm-1"></div>
     </div>
+      
+
   </div>
 
   
