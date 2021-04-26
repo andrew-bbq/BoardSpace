@@ -22,10 +22,10 @@
   <div class="container">
     <div class="row">
       <div class="col-sm-6">
-        <a class="med-text" style="color:#FFF" href="/">Home</a>
+        <a class="med-text button" style="color:#FFF; cursor:default; text-decoration: none" href="/">Home</a>
       </div>
       <div class="col-sm-6 text-right">
-        <input class="button" type="button" value="download" id = "download">
+        <input class="med-text button" type="button" value="Download" id = "download">
       </div>
     </div>
 
@@ -47,7 +47,7 @@
             <span class="sm-text">Size </span> <input class="primary-slider" type="range" min="1" max="25" value="4" id="pensize">
             <span class="sm-text">Color </span> <input class="tool-button" type="color" id="color">
             <span class="sm-text">Opacity </span> <input class="primary-slider" type="range" min="25" max="255" value="255" id="opacity">
-            <button class="subbutton" id="clearboard">clear board </button>
+            <button class="subbutton sm-text" id="clearboard">Clear Board </button>
           <% } %>
       </div>
       <div class="col-sm-1"></div>
@@ -65,7 +65,7 @@
 
         <% if (canEdit) { %>
           <div class="col-sm-7">
-            <button class="tool tool-button" value="Pen"><i class="material-icons">edit</i></button>
+            <button class="tool tool-button" value="Pen" id = "selected"><i class="material-icons">edit</i></button>
             <button class="tool tool-button" value="Eraser"><i class="material-icons">remove_circle</i></button>
             <button class="tool tool-button" value="Text"><i class="material-icons">text_fields</i></button>
             <button class="tool tool-button" value="Rectangle"><i class="material-icons">crop_landscape</i></button>
