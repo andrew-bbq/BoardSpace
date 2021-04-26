@@ -301,7 +301,10 @@ class Text extends DrawingObject {
                 board[lastMoving].foreignText.style.cursor = "e-resize";
             }
             else{
-                board[lastMoving].foreignText.style.cursor = "default";
+                if(!tool== TOOL_EYEDROP){
+                    board[lastMoving].foreignText.style.cursor = "default";
+                }
+               
             }
             if(!board[lastMoving].moving){
                 return;
