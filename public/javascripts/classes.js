@@ -182,7 +182,7 @@ class Text extends DrawingObject {
         this.foreignText = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         this.foreignText.setAttribute("id", "foreigntext" + id);
         this.textDiv = document.createElement("div");
-        this.textDiv.innerHTML = "Click to edit";
+        this.textDiv.setAttribute("class", "textDiv")
         this.textDiv.setAttribute("contentEditable", "true");
         this.textDiv.setAttribute("id", "textdiv" + id);
         this.textDiv.setAttribute("width", this.width + "px");
@@ -301,7 +301,7 @@ class Text extends DrawingObject {
                 board[lastMoving].foreignText.style.cursor = "e-resize";
             }
             else{
-                if(!tool== TOOL_EYEDROP){
+                if(!(tool== TOOL_EYEDROP)){
                     board[lastMoving].foreignText.style.cursor = "default";
                 }
                
