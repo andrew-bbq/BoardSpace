@@ -170,4 +170,5 @@ input[type=range]::-webkit-slider-thumb {
 .textDiv:empty:before {
   content:'Click to edit';
   color:gray;
+  pointer-events: none;
 }
