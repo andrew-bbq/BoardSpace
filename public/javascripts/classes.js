@@ -227,7 +227,7 @@ class Text extends DrawingObject {
         this.foreignText.style = "font-family:arial; text-align: left; font-size: " + this.size + "; color: " + this.color + ";";
         this.textDiv.classList.add("textWrap");
         this.foreignText.appendChild(this.textDiv);
-        this.foreignText.onmousedown = function (ftext) {
+        this.textDiv.onmousedown = function (ftext) {
             if (tool == TOOL_TEXT) {
                 mouseOnText = true;
                 // https://stackoverflow.com/questions/2388164/set-focus-on-div-contenteditable-element
@@ -242,7 +242,7 @@ class Text extends DrawingObject {
                 erase(id);
             }
         }
-        this.foreignText.onmouseenter = function () {
+        this.textDiv.onmouseenter = function () {
             if (mouseDown && tool == TOOL_ERASER) {
                 erase(id);
             }
@@ -257,7 +257,7 @@ class Text extends DrawingObject {
 
         this.moving = false;
         let lastMoving = id;
-        this.foreignText.onmousedown = function (event) {
+        this.textDiv.onmousedown = function (event) {
             if (!board[lastMoving]) {
                 return;
             }
@@ -303,10 +303,10 @@ class Text extends DrawingObject {
             else{
                 board[lastMoving].foreignText.style.cursor = "default";
             }
-
             if(!board[lastMoving].moving){
                 return;
             }
+            
             if (!mouseDown) {
                 board[lastMoving].moving = false;
             }
