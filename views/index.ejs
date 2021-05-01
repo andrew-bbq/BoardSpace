@@ -4,25 +4,68 @@
 <head>
   <title>BoardSpace: A Space for Boards</title>
   <link rel='stylesheet' href='/stylesheets/style.css' />
+  <title>BoardSpace: A Space for Boards</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster|Nunito|Bebas Neue|Comfortaa|Anton">
 </head>
 
-<body>
-  <h1>BoardSpace</h1>
-  <p>
-  <form action="/" method="POST">
-    <div id="OTPInput" >
-      <input class = "digit" id = "opt-field1" maxlength = "4" value = '' autocomplete="off">
-      <input class = "digit" id = "opt-field2" maxlength = "1" value = '' autocomplete="off">
-      <input class = "digit" id = "opt-field3" maxlength = "1" value = '' autocomplete="off">
-      <input class = "digit" id = "opt-field4" maxlength = "1" value = '' autocomplete="off">
+<body style="background-color: #674ea9; height: 100vh">
+  <div class="container h-100">
+    <div class="row h-100">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4 align-self-center">
+        <!-- <h1 class="text-center large-text">BoardSpace</h1> -->
+        <svg viewBox="0 0 500 200">
+          <path style="fill:transparent;" id="curve" d="M73.2,148.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97" />
+          <text class="title" width="500">
+            <textPath xlink:href="#curve">
+              B O A R D S P A C E
+            </textPath>
+          </text>
+        </svg>
+  
+        <div class="col-sm-12 box text-center">
+          <p>
+            <p class="sm-text">Enter Code</p>
+            <form action="/" method="POST">
+              <div id="OTPInput" >
+                <input class = "digit field text-center" id = "opt-field1" maxlength = "4" value = '' autocomplete="off">
+                <input class = "digit field text-center" id = "opt-field2" maxlength = "1" value = '' autocomplete="off">
+                <input class = "digit field text-center" id = "opt-field3" maxlength = "1" value = '' autocomplete="off">
+                <input class = "digit field text-center" id = "opt-field4" maxlength = "1" value = '' autocomplete="off">
+              </div>
+              <input type="hidden" name="code" id="joincode" value = "">
+              <input class="button med-text" id = "joinBtn" name="submit" type="submit" value="Join" />      
+            </form>
+          </p>
+        </div>
+  
+        <p class="text-center med-text mt-3">OR</p>
+  
+        <div class="text-center">
+            <a href="/createboard">
+              <button class="button med-text">Create Board</button>
+            </a>
+        </div>
+      </div>
+  
+      <div class="col-sm-4"></div>
     </div>
-    <input type="hidden" name="code" id="joincode" value = "">
-    <input id = "joinBtn" name="submit" type="submit" value="Join" />
-    <div>
-      <a href="/createboard">Create</a>
-    </div>
-  </form>
-  </p>
+  </div>
+  
+  
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"></script>
 </body>
 <script src = "/javascripts/index.js">
 </script>
